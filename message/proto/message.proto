@@ -1,0 +1,17 @@
+// protoc --go_out=. *.proto
+syntax = "proto3";
+option go_package = "./msgproto";
+
+package proto;
+
+// proto 统一消息结构
+message Message {
+  uint64 seq = 1;  // 序列
+  int64 uid = 2; // 用户ID
+  string route = 3; // 路由ID
+  string game = 4; // 游戏服务名
+  uint64 msg_id = 5; // 消息ID
+  int64 timestamp = 6; // 时间戳 - 毫秒
+  string version = 7; // 版本号
+  bytes payload = 8; // 消息内容
+}

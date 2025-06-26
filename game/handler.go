@@ -1,0 +1,28 @@
+package game
+
+import (
+	"fmt"
+
+	"github.com/ivy-mobile/odin/message"
+)
+
+type (
+	AdminMessageHandler func(data []byte)
+	GameMessageHandler  func(g *Game, msg message.Message) error
+)
+
+// Handler 消息处理器包装器
+// desc: 多包装一层,使用泛型,自动解析业务数据payload,避免重复编码
+func Handler[I any](fn func(ctx Context, msg *I)) GameMessageHandler {
+	return func(g *Game, msg message.Message) error {
+		// 解析业务数据payload到传入的类型I
+		var in I
+		if len(msg.GetPayload()) > 0 {
+			if err := g.opts.codec.Unmarshal(msg.GetPayload(), &in); err != nil {
+				return fmt.Errorf("[Handler] unmarshal payload faild: %w", err)
+			}
+		}
+		fn(newDefaultContext(g, msg), &in)
+		return nil
+	}
+}
