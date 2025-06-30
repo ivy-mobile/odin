@@ -5,10 +5,10 @@ import (
 
 	"github.com/ivy-mobile/odin/encoding/json"
 	"github.com/ivy-mobile/odin/encoding/proto"
+	"github.com/ivy-mobile/odin/enum"
 	"github.com/ivy-mobile/odin/message"
 	msgjson "github.com/ivy-mobile/odin/message/json"
 	msgproto "github.com/ivy-mobile/odin/message/proto"
-	"github.com/ivy-mobile/odin/topic"
 	"github.com/ivy-mobile/odin/xutil/xconv"
 	"github.com/ivy-mobile/odin/xutil/xlog"
 
@@ -60,7 +60,7 @@ func (g *Gate) handleMessage(s *melody.Session, msg []byte) {
 		xlog.Error().Msgf("[HandleMessage] codec not json, codec: %s", g.opts.codec.Name())
 		return
 	}
-	g.dispatch(msg) // 分发
+	g.dispatchToGame(msg) // 分发
 }
 
 // 处理二进制消息 - 采用proto协议
@@ -70,11 +70,11 @@ func (g *Gate) handleMessageBinary(s *melody.Session, msg []byte) {
 		xlog.Error().Msgf("[HandleMessage] codec not json, codec: %s", g.opts.codec.Name())
 		return
 	}
-	g.dispatch(msg) // 分发
+	g.dispatchToGame(msg) // 分发
 }
 
-// 分发消息
-func (g *Gate) dispatch(data []byte) {
+// 分发消息到游戏节点
+func (g *Gate) dispatchToGame(data []byte) {
 
 	// 1. 判断事件总线是否可用
 	eb := g.opts.eventbus
@@ -116,7 +116,7 @@ func (g *Gate) dispatch(data []byte) {
 	// 4. 构造topic
 	// topic = 当前服务名.目标服务名
 	// TODO 未来需要处理多节点场景下，精确转发
-	tp := topic.Gate2GameTopic(g.Name(), msg.GetGame())
+	tp := enum.Gate2GameTopic(g.Name(), msg.GetGame())
 
 	// 4, 通过事件总线发布
 	if err := eb.Publish(context.Background(), tp, data); err != nil {

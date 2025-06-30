@@ -6,7 +6,9 @@ import (
 
 	"github.com/ivy-mobile/odin/encoding"
 	"github.com/ivy-mobile/odin/encoding/proto"
+	"github.com/ivy-mobile/odin/enum"
 	"github.com/ivy-mobile/odin/eventbus"
+	"github.com/ivy-mobile/odin/registry"
 
 	"github.com/olahol/melody"
 )
@@ -18,29 +20,34 @@ type (
 )
 
 type options struct {
-	ctx  context.Context // 上下文
-	id   string          // 实例ID
-	name string          // 实例名称
+	ctx             context.Context // 上下文
+	id              string          // 实例ID
+	name            string          // 实例名称
+	gameServiceName string          // 游戏服务总名称 如: Game
 
 	codec encoding.Codec // 编码解码器
 
 	// websocket 配置
-	port                      string            // 端口
-	pattern                   string            // 路由匹配模式
-	writeWait                 time.Duration     // 写入超时时间
-	pongWait                  time.Duration     // pong 等待时间
-	pingPeriod                time.Duration     // ping 之间的时间间隔
-	maxMessageSize            int64             // 消息最大字节数
-	messageBufferSize         int               // 在会话缓冲区开始丢弃消息之前，该缓冲区中所能容纳的最大消息数量
-	concurrentMessageHandling bool              // 并发处理来自会话的消息
-	eventbus                  eventbus.Eventbus // 事件总线
+	port                      string        // 端口
+	pattern                   string        // 路由匹配模式
+	writeWait                 time.Duration // 写入超时时间
+	pongWait                  time.Duration // pong 等待时间
+	pingPeriod                time.Duration // ping 之间的时间间隔
+	maxMessageSize            int64         // 消息最大字节数
+	messageBufferSize         int           // 在会话缓冲区开始丢弃消息之前，该缓冲区中所能容纳的最大消息数量
+	concurrentMessageHandling bool          // 并发处理来自会话的消息
 
+	// 事件总线
+	eventbus eventbus.Eventbus
+	// 服务注册与发现
+	registry registry.Registry
 }
 
 func defaultOptions() *options {
 	return &options{
 		ctx:                       context.Background(),
-		name:                      "game-gateway",
+		name:                      enum.DefaultGateServiceName,
+		gameServiceName:           enum.DefaultGameServiceName,
 		writeWait:                 10 * time.Second,
 		pongWait:                  60 * time.Second,
 		pingPeriod:                54 * time.Second,
@@ -64,10 +71,18 @@ func WithID(id string) Option {
 	}
 }
 
-// WithName 设置实例名称 默认 game-gateway
+// WithName 设置实例名称 默认 gate
 func WithName(name string) Option {
 	return func(os *options) {
 		os.name = name
+	}
+}
+
+// WithGameServiceName 设置游戏服务名称 默认 game-service
+// 所有游戏都将注册名称为 game-service,每个实例的分别通过metadata中数据进行区分
+func WithGameServiceName(name string) Option {
+	return func(os *options) {
+		os.gameServiceName = name
 	}
 }
 
@@ -124,5 +139,12 @@ func WithEventbus(eventbus eventbus.Eventbus) Option {
 func WithCodec(codec encoding.Codec) Option {
 	return func(os *options) {
 		os.codec = codec
+	}
+}
+
+// WithRegistry 设置服务注册发现 - 必选
+func WithRegistry(registry registry.Registry) Option {
+	return func(os *options) {
+		os.registry = registry
 	}
 }

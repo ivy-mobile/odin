@@ -2,14 +2,18 @@ package game
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/ivy-mobile/odin/encoding/json"
 	"github.com/ivy-mobile/odin/encoding/proto"
+	"github.com/ivy-mobile/odin/enum"
 	"github.com/ivy-mobile/odin/eventbus"
 	"github.com/ivy-mobile/odin/message"
+	"github.com/ivy-mobile/odin/registry"
+	"github.com/ivy-mobile/odin/xutil/xnet"
 	"github.com/ivy-mobile/odin/xutil/xos"
 
 	msgjson "github.com/ivy-mobile/odin/message/json"
@@ -19,12 +23,10 @@ import (
 
 	"github.com/ivy-mobile/odin/player"
 	"github.com/ivy-mobile/odin/room"
-	"github.com/ivy-mobile/odin/topic"
 	"github.com/ivy-mobile/odin/xutil/xgo"
 	"github.com/ivy-mobile/odin/xutil/xlog"
 )
 
-const GatewayName = "game-gateway"
 const defaultChanSize = 1024
 
 // Game 游戏封装
@@ -67,13 +69,22 @@ func New(opts ...Option) *Game {
 // 验证选项
 func (g *Game) validateOptions() error {
 	if g.opts.id == "" {
-		return fmt.Errorf("game id is empty")
+		return errors.New("game id is empty")
 	}
 	if g.opts.name == "" {
-		return fmt.Errorf("game name is empty")
+		return errors.New("game name is empty")
 	}
 	if g.opts.codec == nil {
-		return fmt.Errorf("game message codec is nil")
+		return errors.New("game message codec is nil")
+	}
+	if g.opts.eventbus == nil {
+		return errors.New("game eventbus is nil")
+	}
+	if g.opts.registry == nil {
+		return errors.New("game registry is nil")
+	}
+	if g.opts.serviceName == "" {
+		return errors.New("game public service name is empty")
 	}
 	return nil
 }
@@ -81,21 +92,33 @@ func (g *Game) validateOptions() error {
 // Start 启动游戏
 func (g *Game) Start() {
 
+	defer g.shutdown()
+
 	// 1. 验证选项
 	if err := g.validateOptions(); err != nil {
-		panic(fmt.Errorf("game start failed, validate options, err: %w", err))
+		xlog.Error().Msgf("game start failed, validate options, err: %w", err)
+		return
 	}
 
 	// 2. 监听外部消息
 	g.listenMessage()
 
-	// 3. 等待系统信号
+	// 3. 注册服务
+	if err := g.registerService(); err != nil {
+		xlog.Error().Msgf("game start failed, register service, err: %w", err)
+		return
+	}
+	// 4. 监听网关服务
+	if err := g.watchGateService(); err != nil {
+		xlog.Error().Msgf("game start failed, watch gate service, err: %w", err)
+		return
+	}
+
+	// 5. 等待系统信号
 	xos.WaitSysSignal(func(sig os.Signal) {
 		xlog.Info().Msgf("game %s received signal: %v, exiting...", g.opts.name, sig)
 	})
 
-	// 4. 释放资源
-	g.shutdown()
 }
 
 // RegisterRouter 注册路由
@@ -115,7 +138,7 @@ func (g *Game) MockReciveGateMessage(msg []byte) {
 
 // 模拟接收网关数据
 func (g *Game) MockReciveGateMessagex(msg []byte) {
-	err := g.EventBus().Publish(context.Background(), topic.Gate2GameTopic("game-gateway", "test"), msg)
+	err := g.EventBus().Publish(context.Background(), enum.Gate2GameTopic(g.opts.gateServiceName, "test"), msg)
 	if err != nil {
 		fmt.Printf("Publish error: %v", err)
 		return
@@ -195,7 +218,7 @@ func (g *Game) subscribeGateMessage() {
 		xlog.Error().Msgf("[listenGateMessage] failed, eventbus is nil")
 		return
 	}
-	topic := topic.Gate2GameTopic(GatewayName, g.opts.name)
+	topic := enum.Gate2GameTopic(g.opts.gateServiceName, g.opts.name)
 	err := eb.Subscribe(context.Background(), topic, func(data []byte) {
 		g.writeGateMsg(data)
 	})
@@ -212,7 +235,7 @@ func (g *Game) subscribeAdminCmdMessage() {
 		xlog.Error().Msgf("[listenAdminCmdMessage] failed, eventbus is nil")
 		return
 	}
-	topic := topic.Admin2GameTopic(g.opts.name)
+	topic := enum.Admin2GameTopic(g.opts.name)
 	// 订阅
 	err := eb.Subscribe(context.Background(), topic, func(data []byte) {
 		if g.opts.adminCmdHandler != nil {
@@ -304,7 +327,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 		return fmt.Errorf("codec not support, codec: %s", g.opts.codec.Name())
 	}
 
-	return g.opts.eventbus.Publish(g.ctx, topic.Game2GateTopic(GatewayName, g.opts.name), bytes)
+	return g.opts.eventbus.Publish(g.ctx, enum.Game2GateTopic(g.opts.gateServiceName, g.opts.name), bytes)
 }
 
 func routeKey(version, route string) string {
@@ -312,4 +335,78 @@ func routeKey(version, route string) string {
 		return route
 	}
 	return version + "." + route
+}
+
+// 注册服务
+func (g *Game) registerService() error {
+	host, err := xnet.ExternalIP()
+	if err != nil {
+		return fmt.Errorf("[registerService] get external ip failed: %w", err)
+	}
+	return g.opts.registry.Register(g.ctx, &registry.ServiceInstance{
+		ID:       g.opts.id,
+		Name:     g.opts.name,
+		Kind:     enum.NodeType_Game,
+		Endpoint: fmt.Sprintf("http://%s:8888", host), // 游戏服不暴露对外接口,固定任意值即可
+		State:    enum.NodeState_Work,
+		Weight:   100, // Todo
+	})
+}
+
+// 监听网关服务
+func (g *Game) watchGateService() error {
+
+	reg := g.opts.registry
+	if reg == nil {
+		return fmt.Errorf("watch game service failed, registry is nil")
+	}
+	// 所有Game服务节点
+	services, err := reg.Services(g.ctx, g.opts.gateServiceName)
+	if err != nil {
+		return fmt.Errorf("watch gate service failed, GetServices err: %v", err)
+	}
+	// 订阅所有Game服务节点
+	for _, service := range services {
+		xlog.Info().Msgf("[watchGameService] service: %s", enum.GateNodeName(service.Name, service.ID))
+		g.subscribeGate(service.Name, service.ID)
+	}
+	// 监听Gate服务
+	w, err := reg.Watch(g.ctx, g.opts.gateServiceName)
+	if err != nil {
+		return fmt.Errorf("watch game service failed, Watch err: %v", err)
+	}
+	xgo.Go(func() {
+		
+		for {
+			services, err := w.Next()
+			if err != nil {
+				xlog.Error().Msgf("[watchGameService] watch gate service failed, Next err: %v", err)
+				continue
+			}
+			for _, service := range services {
+				// 更新订阅信息s
+				xlog.Info().Msgf("[watchGameService] gates service: %s changed!", enum.GateNodeName(service.Name, service.ID))
+				g.subscribeGate(service.Name, service.ID)
+			}
+		}
+	})
+	return nil
+}
+
+// 订阅网关服务
+func (g *Game) subscribeGate(gateServiceName, id string) {
+
+	// 当前网关节点
+	game := enum.GameNodeName(g.opts.serviceName, g.opts.id, g.opts.name)
+	// 目标游戏节点
+	gate := enum.GateNodeName(gateServiceName, id)
+	// topic
+	topic := enum.Gate2GameTopic(gate, game)
+	// 订阅
+	err := g.opts.eventbus.Subscribe(context.Background(), topic, g.writeGateMsg)
+	if err != nil {
+		xlog.Error().Msgf("[subscribeGame] failed, subscribe topic: %s, err: %s", topic, err.Error())
+		return
+	}
+	xlog.Info().Msgf("[subscribeGame] success, subscribe topic: %s", topic)
 }

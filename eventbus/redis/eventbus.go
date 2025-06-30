@@ -40,7 +40,9 @@ func NewEventbus(opts ...Option) *Eventbus {
 		})
 	}
 
-	eb := &Eventbus{}
+	eb := &Eventbus{
+		handlers: make(map[string]eventbus.EventHandler),
+	}
 	eb.ctx, eb.cancel = context.WithCancel(o.ctx)
 	eb.opts = o
 	eb.sub = eb.opts.client.Subscribe(eb.ctx)

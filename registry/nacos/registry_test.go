@@ -21,8 +21,9 @@ const (
 )
 
 var reg = nacos.NewRegistry(
-// nacos.WithUrls("http://192.168.2.54:8850/nacos"),
-// nacos.WithNamespaceId("nacos-test"),
+	nacos.WithUrls("http://43.153.4.107:18848/nacos"),
+	nacos.WithGroupName("party-pop-games"),
+	nacos.WithNamespaceId("zhaobin"),
 )
 
 func TestRegistry_Register1(t *testing.T) {

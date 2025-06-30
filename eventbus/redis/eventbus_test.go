@@ -36,6 +36,11 @@ func TestEventbus_Client1_Subscribe(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	err = eb.Subscribe(ctx, loginTopic, loginEventHandler)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = eb.Subscribe(ctx, paidTopic, paidEventHandler)
 	if err != nil {
 		t.Fatal(err)
