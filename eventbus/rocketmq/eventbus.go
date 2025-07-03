@@ -2,6 +2,7 @@ package rocketmq
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/ivy-mobile/odin/eventbus"
@@ -16,6 +17,7 @@ import (
 type Eventbus struct {
 	ctx    context.Context
 	cancel context.CancelFunc
+	once   sync.Once
 
 	producer rmq.Producer
 	consumer rmq.SimpleConsumer
@@ -102,6 +104,11 @@ func (eb *Eventbus) Subscribe(ctx context.Context, topic string, handler eventbu
 	}
 	// 保存处理器
 	eb.handlers[topic] = handler
+
+	// 确保只启动一次
+	eb.once.Do(func() {
+		eb.watch()
+	})
 	return nil
 }
 
