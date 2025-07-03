@@ -78,7 +78,7 @@ func NewEventbus(opts ...Option) (*Eventbus, error) {
 		cancel:   cancel,
 		handlers: make(map[string]eventbus.EventHandler),
 	}
-	e.watch()
+	// e.watch()
 	return e, nil
 }
 
