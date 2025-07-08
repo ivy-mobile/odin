@@ -62,7 +62,7 @@ func WithName(name string) Option {
 	}
 }
 
-// WithName 游戏公共服务名  - 默认为Game
+// WithServiceName 游戏公共服务名  - 默认为gate-service
 // 推荐使用默认设置，不调用此方法
 func WithServiceName(serviceName string) Option {
 	return func(o *options) {

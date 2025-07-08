@@ -96,7 +96,7 @@ func (g *Game) Start() {
 
 	// 1. 验证选项
 	if err := g.validateOptions(); err != nil {
-		xlog.Error().Msgf("game start failed, validate options, err: %w", err)
+		xlog.Error().Msgf("game start failed, validate options, err: %v", err)
 		return
 	}
 
@@ -105,12 +105,12 @@ func (g *Game) Start() {
 
 	// 3. 注册服务
 	if err := g.registerService(); err != nil {
-		xlog.Error().Msgf("game start failed, register service, err: %w", err)
+		xlog.Error().Msgf("game start failed, register service, err: %v", err)
 		return
 	}
 	// 4. 监听网关服务
 	if err := g.watchGateService(); err != nil {
-		xlog.Error().Msgf("game start failed, watch gate service, err: %w", err)
+		xlog.Error().Msgf("game start failed, watch gate service, err: %v", err)
 		return
 	}
 
@@ -288,7 +288,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 	case json.Name:
 		data, err := json.Marshal(payload)
 		if err != nil {
-			return fmt.Errorf("marshal json payload failed, err: %w", err)
+			return fmt.Errorf("marshal json payload failed, err: %v", err)
 		}
 		msg := msgjson.JsonMessage{
 			Seq:       seq,
@@ -302,12 +302,12 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 		}
 		bytes, err = json.Marshal(msg)
 		if err != nil {
-			return fmt.Errorf("marshal json message failed, err: %w", err)
+			return fmt.Errorf("marshal json message failed, err: %v", err)
 		}
 	case proto.Name:
 		data, err := proto.Marshal(payload)
 		if err != nil {
-			return fmt.Errorf("marshal proto payload failed, err: %w", err)
+			return fmt.Errorf("marshal proto payload failed, err: %v", err)
 		}
 		msg := &msgproto.Message{
 			Seq:       seq,
@@ -321,7 +321,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 		}
 		bytes, err = proto.Marshal(msg)
 		if err != nil {
-			return fmt.Errorf("marshal proto message failed, err: %w", err)
+			return fmt.Errorf("marshal proto message failed, err: %v", err)
 		}
 	default:
 		return fmt.Errorf("codec not support, codec: %s", g.opts.codec.Name())
@@ -341,11 +341,12 @@ func routeKey(version, route string) string {
 func (g *Game) registerService() error {
 	host, err := xnet.ExternalIP()
 	if err != nil {
-		return fmt.Errorf("[registerService] get external ip failed: %w", err)
+		return fmt.Errorf("[registerService] get external ip failed: %v", err)
 	}
 	return g.opts.registry.Register(g.ctx, &registry.ServiceInstance{
 		ID:       g.opts.id,
-		Name:     g.opts.name,
+		Name:     g.opts.serviceName,
+		Alias:    g.opts.name,
 		Kind:     enum.NodeType_Game,
 		Endpoint: fmt.Sprintf("http://%s:8888", host), // 游戏服不暴露对外接口,固定任意值即可
 		State:    enum.NodeState_Work,
@@ -376,7 +377,7 @@ func (g *Game) watchGateService() error {
 		return fmt.Errorf("watch game service failed, Watch err: %v", err)
 	}
 	xgo.Go(func() {
-		
+
 		for {
 			services, err := w.Next()
 			if err != nil {

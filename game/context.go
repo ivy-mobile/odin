@@ -26,7 +26,7 @@ type Context interface {
 	Timestamp() int64
 	// Player 玩家
 	Player() player.Player
-	// 房间ID
+	// RoomID 房间ID
 	RoomID() int
 	// Resp 响应消息
 	Resp(data any) error
@@ -114,7 +114,7 @@ func (c *defaultContext) RoomID() int {
 	return c.p.RoomID()
 }
 
-// OkResp 正确响应消息
+// Resp 响应消息
 func (c *defaultContext) Resp(data any) error {
 	if c.p == nil {
 		return errors.New("player not found")
