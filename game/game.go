@@ -114,6 +114,8 @@ func (g *Game) Start() {
 		return
 	}
 
+	xlog.Error().Msgf("Game start success, nodeId: %s, nodeName: %s, serviceName: %s", g.opts.id, g.opts.name, g.opts.serviceName)
+
 	// 5. 等待系统信号
 	xos.WaitSysSignal(func(sig os.Signal) {
 		xlog.Info().Msgf("game %s received signal: %v, exiting...", g.opts.name, sig)
