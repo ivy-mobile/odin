@@ -27,7 +27,7 @@ func With(id int, name string) Option {
 	}
 }
 
-// WithIdleState 设置创建房间时初始状态，无默认值，必须手动设置
+// WithMaxPlayerCount 设置创建房间时初始状态，无默认值，必须手动设置
 func WithMaxPlayerCount(count int) Option {
 	return func(o *options) {
 		o.maxPlayerCount = count

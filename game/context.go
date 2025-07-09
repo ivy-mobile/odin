@@ -7,6 +7,7 @@ import (
 
 	"github.com/ivy-mobile/odin/message"
 	"github.com/ivy-mobile/odin/player"
+	"github.com/ivy-mobile/odin/room"
 )
 
 var ctxPool = sync.Pool{
@@ -17,6 +18,7 @@ var ctxPool = sync.Pool{
 
 // Context 游戏上下文
 type Context interface {
+
 	// Seq 消息序列
 	Seq() uint64
 	// MsgID 消息ID
@@ -31,18 +33,21 @@ type Context interface {
 	Version() string
 	// Timestamp 消息发送时间戳
 	Timestamp() int64
-	// Player 玩家
+	// Player 当前玩家
 	Player() player.Player
 	// Login 玩家登录，添加Payer到玩家管理器和当前上下文
 	Login(p player.Player)
-	// RoomID 房间ID
-	RoomID() int
 	// Resp 响应消息
 	Resp(data any) error
 	// Push 推送消息
 	Push(seq uint64, route string, msgId uint64, msg any) error
+	// GetRoom 根据ID获取房间
+	GetRoom(roomId int) (room.Room, bool)
+	// CreateRoom 创建房间
+	CreateRoom(ro room.Room) error
 	// PushToRoom 推送消息至房间内所有玩家
 	PushToRoom(seq uint64, route string, msgId uint64, msg any) error
+
 	// Close 关闭上下文
 	Close()
 }
@@ -70,7 +75,7 @@ func newDefaultContext(g *Game, msg message.Message) Context {
 
 	ctx := ctxPool.Get().(*defaultContext)
 
-	p, _ := g.players.Get(msg.GetUid())
+	p, _ := g.PlayerManager().Get(msg.GetUid())
 
 	ctx.g = g
 	ctx.p = p
@@ -113,6 +118,24 @@ func (c *defaultContext) Login(p player.Player) {
 	c.p = p
 }
 
+// GetRoom 根据ID获取房间
+func (c *defaultContext) GetRoom(roomId int) (room.Room, bool) {
+	return c.g.RoomManager().Get(roomId)
+}
+
+// CreateRoom 创建房间
+func (c *defaultContext) CreateRoom(ro room.Room) error {
+	if ro == nil {
+		return errors.New("room is nil")
+	}
+	_, exist := c.g.RoomManager().Get(ro.ID())
+	if exist {
+		return fmt.Errorf("room exist, roomId: %v", ro.ID())
+	}
+	c.g.RoomManager().Add(ro)
+	return nil
+}
+
 // Route 路由ID
 func (c *defaultContext) Route() string {
 	return c.route
@@ -133,14 +156,6 @@ func (c *defaultContext) Timestamp() int64 {
 	return c.timestamp
 }
 
-// RoomID 当前所在房间ID
-func (c *defaultContext) RoomID() int {
-	if c.p == nil {
-		return 0
-	}
-	return c.p.RoomID()
-}
-
 // Resp 响应消息
 func (c *defaultContext) Resp(data any) error {
 	if c.p == nil {
@@ -159,15 +174,19 @@ func (c *defaultContext) Push(seq uint64, route string, msgId uint64, msg any) e
 
 // PushToRoom 推送消息至房间内所有玩家
 func (c *defaultContext) PushToRoom(seq uint64, route string, msgId uint64, msg any) error {
-	roomId := c.RoomID()
+	p := c.Player()
+	if p == nil {
+		return errors.New("player not found")
+	}
+	roomId := p.RoomID()
 	if roomId <= 0 {
 		return errors.New("room not found")
 	}
-	room, ok := c.g.rooms.Get(roomId)
-	if !ok || room == nil {
+	ro, ok := c.g.RoomManager().Get(roomId)
+	if !ok || ro == nil {
 		return fmt.Errorf("room %d not found", roomId)
 	}
-	room.Broadcast(seq, route, c.Version(), msgId, msg) // TODO
+	ro.Broadcast(seq, route, c.Version(), msgId, msg) // TODO
 	return nil
 }
 
