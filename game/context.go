@@ -3,10 +3,17 @@ package game
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/ivy-mobile/odin/message"
 	"github.com/ivy-mobile/odin/player"
 )
+
+var ctxPool = sync.Pool{
+	New: func() any {
+		return &defaultContext{}
+	},
+}
 
 // Context 游戏上下文
 type Context interface {
@@ -34,6 +41,8 @@ type Context interface {
 	Push(seq uint64, route string, msgId uint64, msg any) error
 	// PushToRoom 推送消息至房间内所有玩家
 	PushToRoom(seq uint64, route string, msgId uint64, msg any) error
+	// Close 关闭上下文
+	Close()
 }
 
 type defaultContext struct {
@@ -57,18 +66,20 @@ var _ Context = (*defaultContext)(nil)
 
 func newDefaultContext(g *Game, msg message.Message) Context {
 
+	ctx := ctxPool.Get().(*defaultContext)
+
 	p, _ := g.players.Get(msg.GetUid())
 
-	return &defaultContext{
-		g:         g,
-		p:         p,
-		seq:       msg.GetSeq(),
-		uid:       msg.GetUid(),
-		route:     msg.GetRoute(),
-		game:      msg.GetGame(),
-		msgID:     msg.GetMsgId(),
-		timestamp: msg.GetTimestamp(),
-	}
+	ctx.g = g
+	ctx.p = p
+	ctx.seq = msg.GetSeq()
+	ctx.uid = msg.GetUid()
+	ctx.route = msg.GetRoute()
+	ctx.game = msg.GetGame()
+	ctx.msgID = msg.GetMsgId()
+	ctx.timestamp = msg.GetTimestamp()
+	ctx.version = msg.GetVersion()
+	return ctx
 }
 
 // Seq 消息序列
@@ -127,7 +138,7 @@ func (c *defaultContext) Push(seq uint64, route string, msgId uint64, msg any) e
 	if c.p == nil {
 		return errors.New("player not found")
 	}
-	return c.p.SendMessage(seq, route, c.version, msgId, msg)
+	return c.p.SendMessage(seq, route, c.Version(), msgId, msg)
 }
 
 // PushToRoom 推送消息至房间内所有玩家
@@ -137,7 +148,7 @@ func (c *defaultContext) PushToRoom(seq uint64, route string, msgId uint64, msg 
 		return errors.New("room not found")
 	}
 	room, ok := c.g.rooms.Get(roomId)
-	if !ok {
+	if !ok || room == nil {
 		return fmt.Errorf("room %d not found", roomId)
 	}
 	room.Broadcast(seq, route, c.Version(), msgId, msg) // TODO
@@ -147,4 +158,18 @@ func (c *defaultContext) PushToRoom(seq uint64, route string, msgId uint64, msg 
 // Version 版本号
 func (c *defaultContext) Version() string {
 	return c.version
+}
+
+// Close 关闭上下文
+func (c *defaultContext) Close() {
+	c.g = nil
+	c.p = nil
+	c.seq = 0
+	c.uid = 0
+	c.route = ""
+	c.game = ""
+	c.msgID = 0
+	c.timestamp = 0
+	c.version = ""
+	ctxPool.Put(c)
 }

@@ -57,19 +57,6 @@ func GetBase(
 	return p
 }
 
-// 将 Base 实例放回对象池
-func PutBase(p *Base) {
-	p.Close()
-	// 重置字段
-	p.msgHandler = nil
-	p.id = 0
-	p.name = ""
-	p.avatar = ""
-	p.roomID = 0
-	p.isOffline = false
-	basePool.Put(p)
-}
-
 func (b *Base) serve() {
 
 	b.wg.Add(1)
@@ -130,7 +117,15 @@ func (b *Base) SendMessage(seq uint64, route, version string, msgID uint64, payl
 
 // Go 玩家协程执行操作
 func (b *Base) Go(action func()) {
-
+	if action == nil {
+		return
+	}
+	// 玩家未登录时,启动新协程异步处理
+	if b == nil {
+		xgo.Go(action)
+		return
+	}
+	// 玩家已登录时,将操作放入通道
 	select {
 	case b.actionChan <- action:
 	case <-time.After(b.actionTimeout): // 入列超时

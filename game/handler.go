@@ -22,7 +22,13 @@ func Handler[I any](fn func(ctx Context, msg *I)) GameMessageHandler {
 				return fmt.Errorf("[Handler] unmarshal payload faild: %w", err)
 			}
 		}
-		fn(newDefaultContext(g, msg), &in)
+		ctx := newDefaultContext(g, msg)
+		ctx.Player().Go(func() {
+			// 处理用户请求, fn内部必须同步处理,否则会出现执行结束前上下文被回收
+			fn(ctx, &in)
+			// 回收上下文资源
+			ctx.Close()
+		})
 		return nil
 	}
 }
