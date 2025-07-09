@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/ivy-mobile/odin/encoding/json"
@@ -41,8 +42,9 @@ type Game struct {
 
 	gateChan chan []byte // 网关消息通道
 
-	rooms   *room.Manager   // 房间管理器
-	players *player.Manager // 玩家管理器
+	rooms    *room.Manager   // 房间管理器
+	players  *player.Manager // 玩家管理器
+	subGates sync.Map        // 订阅网关列表
 }
 
 // New 创建游戏
@@ -108,6 +110,7 @@ func (g *Game) Start() {
 		xlog.Error().Msgf("game start failed, register service, err: %v", err)
 		return
 	}
+
 	// 4. 监听网关服务
 	if err := g.watchGateService(); err != nil {
 		xlog.Error().Msgf("game start failed, watch gate service, err: %v", err)
@@ -200,8 +203,8 @@ func (g *Game) handlerGateMessage(data []byte) {
 // 从事件总线中订阅消息
 func (g *Game) listenMessage() {
 
-	// 订阅网关消息
-	g.subscribeGateMessage()
+	// 订阅网关消息 - 移至watchGateService中实现(从服务注册中心动态订阅)
+	//g.subscribeGateMessage()
 
 	// 订阅后台指令消息
 	g.subscribeAdminCmdMessage()
@@ -219,12 +222,12 @@ func (g *Game) subscribeGateMessage() {
 		return
 	}
 	topic := enum.Gate2GameTopic(g.opts.gateServiceName, g.opts.name)
-	err := eb.Subscribe(context.Background(), topic, func(data []byte) {
-		g.writeGateMsg(data)
-	})
+	err := eb.Subscribe(context.Background(), topic, g.writeGateMsg)
 	if err != nil {
 		xlog.Error().Msgf("[listenGateMessage] failed, subscribe topic: %s, err: %s", topic, err.Error())
+		return
 	}
+	xlog.Info().Msgf("[subscribeGateMessage] success, subscribe topic: %s", topic)
 }
 
 // 订阅后台指令消息
@@ -377,7 +380,6 @@ func (g *Game) watchGateService() error {
 		return fmt.Errorf("watch game service failed, Watch err: %v", err)
 	}
 	xgo.Go(func() {
-
 		for {
 			services, err := w.Next()
 			if err != nil {
@@ -389,6 +391,8 @@ func (g *Game) watchGateService() error {
 				xlog.Info().Msgf("[watchGameService] gates service: %s changed!", enum.GateNodeName(service.Name, service.ID))
 				g.subscribeGate(service.Name, service.ID)
 			}
+			// 清理无效的旧订阅信息
+			g.cleanSubscribe(services)
 		}
 	})
 	return nil
@@ -409,5 +413,34 @@ func (g *Game) subscribeGate(gateServiceName, id string) {
 		xlog.Error().Msgf("[subscribeGame] failed, subscribe topic: %s, err: %s", topic, err.Error())
 		return
 	}
+	g.subGates.Store(topic, struct{}{})
 	xlog.Info().Msgf("[subscribeGame] success, subscribe topic: %s", topic)
+}
+
+// 清理订阅信息
+// svs 为最新的Gate服务实例列表
+func (g *Game) cleanSubscribe(svs []*registry.ServiceInstance) {
+	game := enum.GameNodeName(g.opts.serviceName, g.opts.id, g.opts.name)
+
+	// 最新的所有Gate服务实例对应topic
+	newTopics := make([]string, 0, len(svs))
+	for _, sv := range svs {
+		gate := enum.GateNodeName(g.opts.gateServiceName, sv.ID)
+		tp := enum.Gate2GameTopic(gate, game)
+		newTopics = append(newTopics, tp)
+	}
+	// 已有的topic如果不在新的topic列表中，则取消订阅
+	g.subGates.Range(func(key, value interface{}) bool {
+		topic := key.(string)
+		if !slices.Contains(newTopics, topic) {
+			if err := g.opts.eventbus.Unsubscribe(context.Background(), topic); err != nil {
+				xlog.Error().Msgf("[cleanSubscribe] unsubscribe topic: %s, err: %s", topic, err.Error())
+			} else {
+				g.subGates.Delete(topic)
+				xlog.Info().Msgf("[cleanSubscribe] unsubscribe topic: %s, success", topic)
+			}
+		}
+		return true
+	})
+
 }
