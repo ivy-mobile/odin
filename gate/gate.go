@@ -53,9 +53,28 @@ func New(opts ...Option) *Gate {
 	}
 }
 
+func (g *Gate) ID() string {
+	return g.opts.id
+}
+
 // Name 组件名称
 func (g *Gate) Name() string {
 	return g.opts.name
+}
+
+// GameServiceName 游戏服务名称
+func (g *Gate) GameServiceName() string {
+	return g.opts.gameServiceName
+}
+
+// Port 端口
+func (g *Gate) Port() string {
+	return g.opts.port
+}
+
+// Pattern 路由路径
+func (g *Gate) Pattern() string {
+	return g.opts.pattern
 }
 
 // Start 启动
@@ -86,7 +105,7 @@ func (g *Gate) Start() {
 		return
 	}
 
-	xlog.Info().Msgf("websocket server started success ... on: %s", g.opts.port+g.opts.pattern)
+	xlog.Info().Msgf("websocket server started success ... on: %s", g.Port()+g.Pattern())
 
 	// 4. 等待信号
 	xos.WaitSysSignal(func(s os.Signal) {
@@ -99,19 +118,19 @@ func (g *Gate) Start() {
 // validateOptions 验证选项
 func (g *Gate) validateOptions() error {
 
-	if g.opts.id == "" {
+	if g.ID() == "" {
 		return fmt.Errorf("gate id is empty")
 	}
-	if g.opts.name == "" {
+	if g.Name() == "" {
 		return fmt.Errorf("gate name is empty")
 	}
-	if g.opts.port == "" {
+	if g.Port() == "" {
 		return fmt.Errorf("gate port is empty")
 	}
 	if g.opts.codec == nil {
 		return fmt.Errorf("codec is unset, use WithCodec(...) to set")
 	}
-	if !strings.HasPrefix(g.opts.pattern, "/") {
+	if !strings.HasPrefix(g.Pattern(), "/") {
 		return fmt.Errorf("gate pattern must start with /")
 	}
 	if g.wsServer == nil {
@@ -156,7 +175,7 @@ func (g *Gate) startWsServer() chan error {
 
 	// 创建 http server
 	g.httpServer = &http.Server{
-		Addr: g.opts.port,
+		Addr: g.Port(),
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if err := g.wsServer.HandleRequest(w, r); err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -166,9 +185,9 @@ func (g *Gate) startWsServer() chan error {
 
 	xgo.Go(func() {
 
-		xlog.Info().Msgf("Gate server starting on %s", g.opts.port)
+		xlog.Info().Msgf("Gate server starting on %s", g.Port())
 
-		listener, err := net.Listen("tcp", g.opts.port)
+		listener, err := net.Listen("tcp", g.Port())
 		if err != nil {
 			startSign <- fmt.Errorf("server start failed: %w", err)
 			return
@@ -194,10 +213,10 @@ func (g *Gate) registerService() error {
 		return fmt.Errorf("get external ip failed: %w", err)
 	}
 	return g.opts.registry.Register(g.opts.ctx, &registry.ServiceInstance{
-		ID:       g.opts.id,
+		ID:       g.ID(),
 		Name:     g.Name(),
 		Kind:     enum.NodeType_Gate,
-		Endpoint: fmt.Sprintf("ws://%s%s%s", host, g.opts.port, g.opts.pattern),
+		Endpoint: fmt.Sprintf("ws://%s%s%s", host, g.Port(), g.Pattern()),
 		State:    enum.NodeState_Work,
 		Weight:   100,
 	})
@@ -212,7 +231,7 @@ func (g *Gate) watchGameService() error {
 		return fmt.Errorf("watch game service failed, registry is nil")
 	}
 	// 所有Game服务节点
-	services, err := reg.Services(g.opts.ctx, g.opts.gameServiceName)
+	services, err := reg.Services(g.opts.ctx, g.GameServiceName())
 	if err != nil {
 		return fmt.Errorf("watch game service failed, GetServices err: %v", err)
 	}
@@ -222,7 +241,7 @@ func (g *Gate) watchGameService() error {
 		g.subscribeGame(service.Name, service.ID, service.Alias)
 	}
 	// 监听Game服务
-	w, err := reg.Watch(g.opts.ctx, g.opts.gameServiceName)
+	w, err := reg.Watch(g.opts.ctx, g.GameServiceName())
 	if err != nil {
 		return fmt.Errorf("watch game service failed, Watch err: %v", err)
 	}
@@ -249,7 +268,7 @@ func (g *Gate) watchGameService() error {
 func (g *Gate) subscribeGame(gameServiceName, id, alias string) {
 
 	// 当前网关节点
-	gate := enum.GateNodeName(g.opts.name, g.opts.id)
+	gate := enum.GateNodeName(g.Name(), g.ID())
 	// 目标游戏节点
 	game := enum.GameNodeName(gameServiceName, id, alias)
 	// topic
@@ -290,12 +309,12 @@ func (g *Gate) dispatchToSession(data []byte) {
 // 清理订阅信息
 // svs 为最新的Game服务实例列表
 func (g *Gate) cleanSubscribe(svs []*registry.ServiceInstance) {
-	gate := enum.GateNodeName(g.opts.name, g.opts.id)
+	gate := enum.GateNodeName(g.Name(), g.ID())
 
 	// 最新的所有Game服务实例对应topic
 	newTopics := make([]string, 0, len(svs))
 	for _, sv := range svs {
-		game := enum.GameNodeName(g.opts.gameServiceName, sv.ID, sv.Alias)
+		game := enum.GameNodeName(g.GameServiceName(), sv.ID, sv.Alias)
 		tp := enum.Game2GateTopic(gate, game)
 		newTopics = append(newTopics, tp)
 	}
