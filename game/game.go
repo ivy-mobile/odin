@@ -131,6 +131,11 @@ func (g *Game) RegisterRouter(version, route string, handler GameMessageHandler)
 	g.routeHandlers[routeKey(version, route)] = handler
 }
 
+// RegisterCmdHandler 注册后台指令处理器
+func (g *Game) RegisterCmdHandler(cmdHandler CmdMessageHandler) {
+	g.opts.adminCmdHandler = cmdHandler
+}
+
 // 网关消息写入通道
 func (g *Game) writeGateMsg(msg []byte) {
 	g.gateChan <- msg
@@ -242,7 +247,7 @@ func (g *Game) subscribeAdminCmdMessage() {
 	// 订阅
 	err := eb.Subscribe(context.Background(), topic, func(data []byte) {
 		if g.opts.adminCmdHandler != nil {
-			g.opts.adminCmdHandler(data)
+			g.opts.adminCmdHandler(g, data)
 		}
 	})
 	if err != nil {

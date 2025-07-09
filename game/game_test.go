@@ -31,10 +31,11 @@ func TestRegister(t1 *testing.T) {
 			redis.WithPassword(""),
 		)),
 		game.WithCodec(json.DefaultCodec),
-		game.WithAdminCmdHandler(func(data []byte) {
-
-		}),
 	)
+
+	g.RegisterCmdHandler(func(g *game.Game, msg []byte) {
+
+	})
 
 	// test 注册路由
 	g.RegisterRouter(Version100, "Heartbeat", game.Handler(Heartbeat))

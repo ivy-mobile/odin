@@ -28,7 +28,7 @@ type options struct {
 	// eventbus 事件总线
 	eventbus eventbus.Eventbus
 	// 后台指令消息处理器
-	adminCmdHandler AdminMessageHandler
+	adminCmdHandler CmdMessageHandler
 }
 
 func defaultOptions() *options {
@@ -81,13 +81,6 @@ func WithEventbus(eb eventbus.Eventbus) Option {
 func WithRoomIdGenerator(roomIdGenerator generator.RoomIdGenerator) Option {
 	return func(o *options) {
 		o.roomIdGenerator = roomIdGenerator
-	}
-}
-
-// WithAdminCmdHandler 后台指令消息处理器，默认为nil,不处理
-func WithAdminCmdHandler(adminCmdHandler AdminMessageHandler) Option {
-	return func(o *options) {
-		o.adminCmdHandler = adminCmdHandler
 	}
 }
 

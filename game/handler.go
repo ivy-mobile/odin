@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	AdminMessageHandler func(data []byte)
-	GameMessageHandler  func(g *Game, msg message.Message) error
+	GameMessageHandler func(g *Game, msg message.Message) error // 游戏消息处理器
+	CmdMessageHandler  func(g *Game, msg []byte)                // 指令消息处理器
 )
 
 // Handler 消息处理器包装器
