@@ -33,6 +33,8 @@ type Context interface {
 	Timestamp() int64
 	// Player 玩家
 	Player() player.Player
+	// Login 玩家登录，添加Payer到玩家管理器和当前上下文
+	Login(p player.Player)
 	// RoomID 房间ID
 	RoomID() int
 	// Resp 响应消息
@@ -95,6 +97,14 @@ func (c *defaultContext) Uid() int64 {
 // Player 玩家, 可能为nil(在玩家未登录的情况下)
 func (c *defaultContext) Player() player.Player {
 	return c.p
+}
+
+// Login 玩家登录，添加Payer到玩家管理器和当前上下文
+func (c *defaultContext) Login(p player.Player) {
+	// 添加玩家到玩家管理器
+	c.g.PlayerManager().Add(p)
+	// 设置玩家到上下文
+	c.p = p
 }
 
 // Route 路由ID
