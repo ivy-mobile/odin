@@ -6,7 +6,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ivy-mobile/odin/encoding/json"
@@ -34,6 +36,8 @@ type Gate struct {
 	httpServer *http.Server
 	// 会话管理器
 	sessions *Sessions
+	// 订阅游戏列表
+	subGames sync.Map
 }
 
 func New(opts ...Option) *Gate {
@@ -234,6 +238,8 @@ func (g *Gate) watchGameService() error {
 				xlog.Info().Msgf("[watchGameService] game service: %s changed!", enum.GameNodeName(service.Name, service.ID, service.Alias))
 				g.subscribeGame(service.Name, service.ID, service.Alias)
 			}
+			// 清理无效的旧订阅信息
+			g.cleanSubscribe(services)
 		}
 	})
 	return nil
@@ -254,6 +260,8 @@ func (g *Gate) subscribeGame(gameServiceName, id, alias string) {
 		xlog.Error().Msgf("[subscribeGame] failed, subscribe topic: %s, err: %s", topic, err.Error())
 		return
 	}
+	g.subGames.Store(topic, struct{}{})
+
 	xlog.Info().Msgf("[subscribeGame] success, subscribe topic: %s", topic)
 }
 
@@ -277,4 +285,32 @@ func (g *Gate) dispatchToSession(data []byte) {
 		}
 		g.sessions.Send(data, protoMsg.GetUid())
 	}
+}
+
+// 清理订阅信息
+// svs 为最新的Game服务实例列表
+func (g *Gate) cleanSubscribe(svs []*registry.ServiceInstance) {
+	gate := enum.GateNodeName(g.opts.name, g.opts.id)
+
+	// 最新的所有Game服务实例对应topic
+	newTopics := make([]string, 0, len(svs))
+	for _, sv := range svs {
+		game := enum.GameNodeName(g.opts.gameServiceName, sv.ID, sv.Alias)
+		tp := enum.Game2GateTopic(gate, game)
+		newTopics = append(newTopics, tp)
+	}
+	// 已有的topic如果不在新的topic列表中，则取消订阅
+	g.subGames.Range(func(key, value interface{}) bool {
+		topic := key.(string)
+		if !slices.Contains(newTopics, topic) {
+			if err := g.opts.eventbus.Unsubscribe(context.Background(), topic); err != nil {
+				xlog.Error().Msgf("[cleanSubscribe] unsubscribe topic: %s, err: %s", topic, err.Error())
+			} else {
+				g.subGames.Delete(topic)
+				xlog.Info().Msgf("[cleanSubscribe] unsubscribe topic: %s, success", topic)
+			}
+		}
+		return true
+	})
+
 }

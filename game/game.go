@@ -133,13 +133,8 @@ func (g *Game) writeGateMsg(msg []byte) {
 	g.gateChan <- msg
 }
 
-// 模拟接收网关数据
-func (g *Game) MockReciveGateMessage(msg []byte) {
-	g.writeGateMsg(msg)
-}
-
-// 模拟接收网关数据
-func (g *Game) MockReciveGateMessagex(msg []byte) {
+// MockReceiveGateMessage 模拟接收网关数据
+func (g *Game) MockReceiveGateMessage(msg []byte) {
 	err := g.EventBus().Publish(context.Background(), enum.Gate2GameTopic(g.opts.gateServiceName, "test"), msg)
 	if err != nil {
 		fmt.Printf("Publish error: %v", err)
@@ -196,7 +191,10 @@ func (g *Game) handlerGateMessage(data []byte) {
 		xlog.Error().Msgf("[handlerGateMessage] failed, not found handler, route: %s", routeKey(version, route))
 		return
 	}
-	handler(g, msg)
+	err := handler(g, msg)
+	if err != nil {
+		xlog.Error().Msgf("[handlerGateMessage] failed, handler route: %s, err: %s", routeKey(version, route), err.Error())
+	}
 }
 
 // 从事件总线中订阅消息

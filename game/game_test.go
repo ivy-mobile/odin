@@ -59,7 +59,7 @@ func TestRegister(t1 *testing.T) {
 			Payload: paylod,
 		}
 		bytes, _ := json.Marshal(data)
-		g.MockReciveGateMessagex(bytes)
+		g.MockReceiveGateMessage(bytes)
 		fmt.Println("Login Publish success, data: ", string(bytes))
 
 		// 心跳
@@ -71,7 +71,7 @@ func TestRegister(t1 *testing.T) {
 			MsgID:   1,
 		}
 		hbbytes, _ := json.Marshal(hbdata)
-		g.MockReciveGateMessagex(hbbytes)
+		g.MockReceiveGateMessage(hbbytes)
 		fmt.Println("Heartbeat Publish success, data: ", string(hbbytes))
 	}()
 	g.Start()
