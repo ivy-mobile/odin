@@ -8,6 +8,7 @@ import (
 
 	"github.com/ivy-mobile/odin/player"
 	"github.com/ivy-mobile/odin/xutil/xgo"
+	"github.com/ivy-mobile/odin/xutil/xlog"
 )
 
 // Base 基础房间 - 适用于单个房间20人
@@ -158,7 +159,9 @@ func (b *Base) Close() {
 // Broadcast 房间内广播消息
 func (b *Base) Broadcast(seq uint64, route, version string, msgId uint64, msg any) {
 	b.players.Range(func(_ int64, p player.Player) bool {
-		p.SendMessage(seq, route, version, msgId, msg)
+		if err := p.SendMessage(seq, route, version, msgId, msg); err != nil {
+			xlog.Error().Int64("Uid", p.ID()).Msgf("[Broadcast.SendMessage] send message error: %v", err)
+		}
 		return true
 	})
 }

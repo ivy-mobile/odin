@@ -8,6 +8,7 @@ import (
 	"github.com/ivy-mobile/odin/message"
 	"github.com/ivy-mobile/odin/player"
 	"github.com/ivy-mobile/odin/room"
+	"github.com/ivy-mobile/odin/xutil/xlog"
 )
 
 var ctxPool = sync.Pool{
@@ -38,15 +39,15 @@ type Context interface {
 	// Login 玩家登录，添加Payer到玩家管理器和当前上下文
 	Login(p player.Player)
 	// Resp 响应消息
-	Resp(data any) error
+	Resp(data any)
 	// Push 推送消息
-	Push(seq uint64, route string, msgId uint64, msg any) error
+	Push(seq uint64, route string, msgId uint64, msg any)
 	// GetRoom 根据ID获取房间
 	GetRoom(roomId int) (room.Room, bool)
 	// CreateRoom 创建房间
 	CreateRoom(ro room.Room) error
 	// PushToRoom 推送消息至房间内所有玩家
-	PushToRoom(seq uint64, route string, msgId uint64, msg any) error
+	PushToRoom(seq uint64, route string, msgId uint64, msg any)
 
 	// Close 关闭上下文
 	Close()
@@ -157,37 +158,70 @@ func (c *defaultContext) Timestamp() int64 {
 }
 
 // Resp 响应消息
-func (c *defaultContext) Resp(data any) error {
+func (c *defaultContext) Resp(data any) {
 	if c.p == nil {
-		return errors.New("player not found")
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Str("Request", c.route).
+			Uint64("MsgId", c.MsgID()).
+			Msg("[Resp] player not found")
+		return
 	}
-	return c.p.SendMessage(c.Seq(), c.Route(), c.Version(), c.MsgID(), data)
+	// 发送消息
+	if err := c.p.SendMessage(c.Seq(), c.Route(), c.Version(), c.MsgID(), data); err != nil {
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Str("Request", c.route).
+			Uint64("MsgId", c.MsgID()).
+			Msgf("[Resp] send message fail: %v", err)
+	}
 }
 
 // Push 推送消息
-func (c *defaultContext) Push(seq uint64, route string, msgId uint64, msg any) error {
+func (c *defaultContext) Push(seq uint64, route string, msgId uint64, msg any) {
 	if c.p == nil {
-		return errors.New("player not found")
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Uint64("MsgId", c.MsgID()).
+			Msg("[Push] player not found")
+		return
 	}
-	return c.p.SendMessage(seq, route, c.Version(), msgId, msg)
+	if err := c.p.SendMessage(seq, route, c.Version(), msgId, msg); err != nil {
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Uint64("MsgId", c.MsgID()).
+			Msgf("[Push] send message fail: %v", err)
+	}
 }
 
 // PushToRoom 推送消息至房间内所有玩家
-func (c *defaultContext) PushToRoom(seq uint64, route string, msgId uint64, msg any) error {
+func (c *defaultContext) PushToRoom(seq uint64, route string, msgId uint64, msg any) {
 	p := c.Player()
 	if p == nil {
-		return errors.New("player not found")
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Uint64("MsgId", c.MsgID()).
+			Msg("[PushToRoom] player not found")
+		return
 	}
 	roomId := p.RoomID()
 	if roomId <= 0 {
-		return errors.New("room not found")
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Uint64("MsgId", c.MsgID()).
+			Msg("[PushToRoom] room is zero")
+		return
 	}
 	ro, ok := c.g.RoomManager().Get(roomId)
 	if !ok || ro == nil {
-		return fmt.Errorf("room %d not found", roomId)
+		xlog.Error().
+			Int64("Uid", c.Uid()).
+			Int("RoomId", roomId).
+			Uint64("MsgId", c.MsgID()).
+			Msg("[PushToRoom] room not found")
+		return
 	}
 	ro.Broadcast(seq, route, c.Version(), msgId, msg) // TODO
-	return nil
 }
 
 // Version 版本号
