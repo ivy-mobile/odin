@@ -252,7 +252,9 @@ func (g *Game) subscribeAdminCmdMessage() {
 	})
 	if err != nil {
 		xlog.Error().Msgf("[listenAdminCmdMessage] failed, subscribe topic: %s, err: %s", topic, err.Error())
+		return
 	}
+	xlog.Info().Msgf("[subscribeAdminCmdMessage] success, subscribe topic: %s", topic)
 }
 
 // 关闭游戏
