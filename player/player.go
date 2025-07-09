@@ -6,6 +6,10 @@ type Player interface {
 	ID() int64
 	// Name 玩家名
 	Name() string
+	// SetMsgHandler 设置消息处理器
+	SetMsgHandler(msgHandler MsgHandler)
+	// MsgHandler 获取消息处理器
+	MsgHandler() MsgHandler
 	// Avatar 玩家头像
 	Avatar() string
 	// RoomID 玩家房间ID

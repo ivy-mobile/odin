@@ -101,6 +101,12 @@ func (c *defaultContext) Player() player.Player {
 
 // Login 玩家登录，添加Payer到玩家管理器和当前上下文
 func (c *defaultContext) Login(p player.Player) {
+	if p == nil {
+		return
+	}
+	if p.MsgHandler() == nil {
+		p.SetMsgHandler(c.g)
+	}
 	// 添加玩家到玩家管理器
 	c.g.PlayerManager().Add(p)
 	// 设置玩家到上下文

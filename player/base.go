@@ -39,13 +39,11 @@ var _ Player = (*Base)(nil)
 
 // GetBase 从对象池获取一个 Base 实例
 func GetBase(
-	msgHandler MsgHandler,
 	id int64,
 	name string,
 	avatar string,
 	actionTimeout time.Duration) *Base {
 	p := basePool.Get().(*Base)
-	p.msgHandler = msgHandler
 	p.id = id
 	p.name = name
 	p.avatar = avatar
@@ -81,6 +79,14 @@ func (b *Base) Name() string {
 	return b.name
 }
 
+func (b *Base) SetMsgHandler(msgHandler MsgHandler) {
+	b.msgHandler = msgHandler
+}
+
+func (b *Base) MsgHandler() MsgHandler {
+	return b.msgHandler
+}
+
 func (b *Base) Avatar() string {
 	return b.avatar
 }
@@ -109,8 +115,11 @@ func (b *Base) IsOffline() bool {
 
 // SendMessage 发送消息
 func (b *Base) SendMessage(seq uint64, route, version string, msgID uint64, payload any) error {
-	if b == nil || b.msgHandler == nil {
+	if b == nil {
 		return errors.New("player not found")
+	}
+	if b.msgHandler == nil {
+		return errors.New("msgHandler is nil")
 	}
 	return b.msgHandler.SendMessage(seq, b.id, route, version, msgID, payload)
 }
