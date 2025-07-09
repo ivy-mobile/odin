@@ -6,7 +6,7 @@ import (
 
 const Name = "json"
 
-var DefaultCodec = &codec{}
+var Codec = &codec{}
 
 type codec struct{}
 
@@ -27,10 +27,10 @@ func (codec) Unmarshal(data []byte, v any) error {
 
 // Marshal 编码
 func Marshal(v any) ([]byte, error) {
-	return DefaultCodec.Marshal(v)
+	return Codec.Marshal(v)
 }
 
 // Unmarshal 解码
 func Unmarshal(data []byte, v any) error {
-	return DefaultCodec.Unmarshal(data, v)
+	return Codec.Unmarshal(data, v)
 }

@@ -13,12 +13,12 @@ import (
 var codecs = make(map[string]Codec)
 
 func init() {
-	Register(json.DefaultCodec)
-	Register(proto.DefaultCodec)
-	Register(toml.DefaultCodec)
-	Register(xml.DefaultCodec)
-	Register(yaml.DefaultCodec)
-	Register(msgpack.DefaultCodec)
+	Register(json.Codec)
+	Register(proto.Codec)
+	Register(toml.Codec)
+	Register(xml.Codec)
+	Register(yaml.Codec)
+	Register(msgpack.Codec)
 }
 
 type Codec interface {
@@ -34,14 +34,13 @@ type Codec interface {
 func Register(codec Codec) {
 	if codec == nil {
 		xlog.Fatal().Msg("can't register a invalid codec")
+		return
 	}
-
 	name := codec.Name()
 
 	if name == "" {
 		xlog.Fatal().Msg("can't register a codec without name")
 	}
-
 	if _, ok := codecs[name]; ok {
 		xlog.Warn().Msgf("the old %s codec will be overwritten", name)
 	}
