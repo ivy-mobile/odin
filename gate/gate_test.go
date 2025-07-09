@@ -14,7 +14,7 @@ func TestGate_Start(t *testing.T) {
 		WithID("test"),
 		WithName("test"),
 		WithPort(":18080"),
-		WithCodec(json.DefaultCodec),
+		WithCodec(json.Codec),
 		WithPattern("/ws"),
 		WithWriteWait(10*time.Second),
 		WithPongWait(60*time.Second),

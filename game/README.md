@@ -47,7 +47,7 @@
 | --- | --- | --- |
 | `id` | 游戏 ID | 无 |
 | `name` | 游戏名称 | 无 |
-| `codec` | 编解码器 | `proto.DefaultCodec` |
+| `codec` | 编解码器 | `proto.Codec` |
 | `roomIdGenerator` | 房间 ID 生成器 | 无 |
 | `eventbus` | 事件总线 | 无 |
 | `adminCmdHandler` | 后台指令消息处理器 | 无 |
@@ -77,7 +77,7 @@ func main() {
             redis.WithAddrs("localhost:6379"),
             redis.WithPassword(""),
         )),
-        game.WithCodec(json.DefaultCodec),
+        game.WithCodec(json.Codec),
         game.WithAdminCmdHandler(func(data []byte) {
             // 处理后台指令
         }),

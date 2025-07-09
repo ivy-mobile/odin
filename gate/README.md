@@ -44,7 +44,7 @@
 | `pongWait` | pong 等待时间 | `60s` |
 | `pingPeriod` | ping 之间的时间间隔 | `54s` |
 | `maxMessageSize` | 消息最大字节数 | `512` |
-| `codec` | 编码解码器 | `proto.DefaultCodec` |
+| `codec` | 编码解码器 | `proto.Codec` |
 | `eventbus` | 事件总线 | 无 |
 
 ### 消息处理
@@ -71,7 +71,7 @@ func main() {
         gate.WithID("test"),
         gate.WithName("test"),
         gate.WithPort(":8080"),
-        gate.WithCodec(json.DefaultCodec),
+        gate.WithCodec(json.Codec),
         gate.WithPattern("/ws"),
         gate.WithWriteWait(10*time.Second),
         gate.WithPongWait(60*time.Second),

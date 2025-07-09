@@ -54,7 +54,7 @@ func defaultOptions() *options {
 		maxMessageSize:            512,
 		messageBufferSize:         1024,
 		concurrentMessageHandling: false,
-		codec:                     proto.DefaultCodec,
+		codec:                     proto.Codec,
 	}
 }
 

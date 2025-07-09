@@ -30,7 +30,7 @@ func TestRegister(t1 *testing.T) {
 			redis.WithAddrs("localhost:6379"),
 			redis.WithPassword(""),
 		)),
-		game.WithCodec(json.DefaultCodec),
+		game.WithCodec(json.Codec),
 	)
 
 	g.RegisterCmdHandler(func(g *game.Game, msg []byte) {

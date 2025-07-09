@@ -33,7 +33,7 @@ type options struct {
 
 func defaultOptions() *options {
 	return &options{
-		codec:           proto.DefaultCodec, // 默认使用proto编解码
+		codec:           proto.Codec, // 默认使用proto编解码
 		serviceName:     enum.DefaultGameServiceName,
 		gateServiceName: enum.DefaultGateServiceName,
 	}

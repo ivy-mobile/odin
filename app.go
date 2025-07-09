@@ -13,7 +13,7 @@ func main() {
 	xlog.Init("debug", "", 3, "gate", "dev")
 
 	g := gate.New(
-		gate.WithCodec(json.DefaultCodec),
+		gate.WithCodec(json.Codec),
 		gate.WithID("1"),
 		gate.WithName("Gate"),
 		gate.WithPattern("/ws"),
