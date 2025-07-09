@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ivy-mobile/odin/message"
+	"github.com/ivy-mobile/odin/xutil/xgo"
 )
 
 type (
@@ -22,13 +23,21 @@ func Handler[I any](fn func(ctx Context, msg *I)) GameMessageHandler {
 				return fmt.Errorf("[Handler] unmarshal payload faild: %w", err)
 			}
 		}
+
 		ctx := newDefaultContext(g, msg)
-		ctx.Player().Go(func() {
+		action := func() {
 			// 处理用户请求, fn内部必须同步处理,否则会出现执行结束前上下文被回收
 			fn(ctx, &in)
 			// 回收上下文资源
 			ctx.Close()
-		})
+		}
+		//1.用户未登录,开启协程执行
+		//2.用户已登录,使用用户协程执行
+		if ctx.Player() == nil {
+			xgo.Go(action)
+		} else {
+			ctx.Player().Go(action)
+		}
 		return nil
 	}
 }
