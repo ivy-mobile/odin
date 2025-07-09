@@ -14,12 +14,12 @@ func NewManager() *Manager {
 	}
 }
 
-// AddRoom 添加房间
+// Add 添加房间
 func (m *Manager) Add(room Room) {
 	m.rooms.Store(room.ID(), room)
 }
 
-// GetRoom 获取房间
+// Get 获取房间
 func (m *Manager) Get(id int) (Room, bool) {
 	room, ok := m.rooms.Load(id)
 	if !ok {

@@ -13,9 +13,9 @@ const (
 // 用于定位用户所在的 Game节点 或 Gate节点
 type Locator interface {
 
-	// Bind 绑定网关节点
+	// BindGate 绑定网关节点
 	BindGate(ctx context.Context, uid int64, gateID string) error
-	// Unbind 解绑网关节点
+	// UnbindGate 解绑网关节点
 	UnbindGate(ctx context.Context, uid int64, gateID string) error
 	// GetGateNode 获取用户所在的 Gate 节点
 	GetGateNode(ctx context.Context, uid int64) (string, error)
@@ -27,6 +27,6 @@ type Locator interface {
 	// GetGameNode 获取用户所在的 Game 节点
 	GetGameNode(ctx context.Context, uid int64, gameName string) (string, error)
 
-	// 监听事件
+	// WatchChange 监听变化
 	WatchChange(ctx context.Context, channels ...EventChannel)
 }

@@ -37,7 +37,7 @@ type Base struct {
 
 var _ Player = (*Base)(nil)
 
-// 从对象池获取一个 Base 实例
+// GetBase 从对象池获取一个 Base 实例
 func GetBase(
 	msgHandler MsgHandler,
 	id int64,

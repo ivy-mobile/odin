@@ -172,7 +172,7 @@ func (l *redisLocator) GetGateNode(ctx context.Context, uid int64) (string, erro
 		rkey := fmt.Sprintf(locatorUserGateKey, l.opts.prefix, uid)
 		// 从 Redis 获取
 		gateID, err := l.opts.client.Get(ctx, rkey).Result()
-		if err == redis.Nil {
+		if errors.Is(err, redis.Nil) {
 			return nil, nil
 		}
 		if err != nil {
