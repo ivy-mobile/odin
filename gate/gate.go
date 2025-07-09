@@ -2,6 +2,7 @@ package gate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -197,7 +198,7 @@ func (g *Gate) startWsServer() chan error {
 		startSign <- nil
 
 		// Serve 会一直在协程内阻塞，直到服务器关闭
-		if err := g.httpServer.Serve(listener); err != nil && err != http.ErrServerClosed {
+		if err := g.httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			startSign <- fmt.Errorf("server start failed: %w", err)
 			return
 		}
