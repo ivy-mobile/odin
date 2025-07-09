@@ -46,7 +46,7 @@ func WithID(id string) Option {
 	}
 }
 
-// WithGateServiceName 网关服务名称 - 默认Gate
+// WithGateServiceName 网关服务名称 - 默认 gate-service
 // 推荐使用默认设置，不调用此方法
 func WithGateServiceName(name string) Option {
 	return func(o *options) {
@@ -62,7 +62,7 @@ func WithName(name string) Option {
 	}
 }
 
-// WithServiceName 游戏公共服务名  - 默认为gate-service
+// WithServiceName 游戏公共服务名  - 默认为game-service
 // 推荐使用默认设置，不调用此方法
 func WithServiceName(serviceName string) Option {
 	return func(o *options) {

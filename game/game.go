@@ -68,24 +68,40 @@ func New(opts ...Option) *Game {
 	}
 }
 
+func (g *Game) ID() string {
+	return g.opts.id
+}
+
+func (g *Game) Name() string {
+	return g.opts.name
+}
+
+func (g *Game) ServiceName() string {
+	return g.opts.serviceName
+}
+
+func (g *Game) GateServiceName() string {
+	return g.opts.gateServiceName
+}
+
 // 验证选项
 func (g *Game) validateOptions() error {
-	if g.opts.id == "" {
+	if g.ID() == "" {
 		return errors.New("game id is empty")
 	}
-	if g.opts.name == "" {
+	if g.Name() == "" {
 		return errors.New("game name is empty")
 	}
 	if g.opts.codec == nil {
 		return errors.New("game message codec is nil")
 	}
-	if g.opts.eventbus == nil {
+	if g.EventBus() == nil {
 		return errors.New("game eventbus is nil")
 	}
 	if g.opts.registry == nil {
 		return errors.New("game registry is nil")
 	}
-	if g.opts.serviceName == "" {
+	if g.ServiceName() == "" {
 		return errors.New("game public service name is empty")
 	}
 	return nil
@@ -117,11 +133,11 @@ func (g *Game) Start() {
 		return
 	}
 
-	xlog.Error().Msgf("Game start success, nodeId: %s, nodeName: %s, serviceName: %s", g.opts.id, g.opts.name, g.opts.serviceName)
+	xlog.Error().Msgf("Game start success, nodeId: %s, nodeName: %s, serviceName: %s", g.ID, g.Name(), g.ServiceName())
 
 	// 5. 等待系统信号
 	xos.WaitSysSignal(func(sig os.Signal) {
-		xlog.Info().Msgf("game %s received signal: %v, exiting...", g.opts.name, sig)
+		xlog.Info().Msgf("game %s received signal: %v, exiting...", g.Name(), sig)
 	})
 
 }
@@ -143,7 +159,7 @@ func (g *Game) writeGateMsg(msg []byte) {
 
 // MockReceiveGateMessage 模拟接收网关数据
 func (g *Game) MockReceiveGateMessage(msg []byte) {
-	err := g.EventBus().Publish(context.Background(), enum.Gate2GameTopic(g.opts.gateServiceName, "test"), msg)
+	err := g.EventBus().Publish(context.Background(), enum.Gate2GameTopic(g.GateServiceName(), "test"), msg)
 	if err != nil {
 		fmt.Printf("Publish error: %v", err)
 		return
@@ -226,7 +242,7 @@ func (g *Game) subscribeGateMessage() {
 		xlog.Error().Msgf("[listenGateMessage] failed, eventbus is nil")
 		return
 	}
-	topic := enum.Gate2GameTopic(g.opts.gateServiceName, g.opts.name)
+	topic := enum.Gate2GameTopic(g.GateServiceName(), g.Name())
 	err := eb.Subscribe(context.Background(), topic, g.writeGateMsg)
 	if err != nil {
 		xlog.Error().Msgf("[listenGateMessage] failed, subscribe topic: %s, err: %s", topic, err.Error())
@@ -243,7 +259,7 @@ func (g *Game) subscribeAdminCmdMessage() {
 		xlog.Error().Msgf("[listenAdminCmdMessage] failed, eventbus is nil")
 		return
 	}
-	topic := enum.Admin2GameTopic(g.opts.name)
+	topic := enum.Admin2GameTopic(g.Name())
 	// 订阅
 	err := eb.Subscribe(context.Background(), topic, func(data []byte) {
 		if g.opts.adminCmdHandler != nil {
@@ -304,7 +320,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 			Seq:       seq,
 			Uid:       uid,
 			Route:     route,
-			Game:      g.opts.name,
+			Game:      g.Name(),
 			MsgID:     msgID,
 			Timestamp: time.Now().UnixMilli(),
 			Version:   version,
@@ -323,7 +339,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 			Seq:       seq,
 			Uid:       uid,
 			Route:     route,
-			Game:      g.opts.name,
+			Game:      g.Name(),
 			MsgId:     msgID,
 			Version:   version,
 			Timestamp: time.Now().UnixMilli(),
@@ -337,7 +353,7 @@ func (g *Game) SendMessage(seq uint64, uid int64, route, version string, msgID u
 		return fmt.Errorf("codec not support, codec: %s", g.opts.codec.Name())
 	}
 
-	return g.opts.eventbus.Publish(g.ctx, enum.Game2GateTopic(g.opts.gateServiceName, g.opts.name), bytes)
+	return g.opts.eventbus.Publish(g.ctx, enum.Game2GateTopic(g.GateServiceName(), g.Name()), bytes)
 }
 
 func routeKey(version, route string) string {
@@ -354,9 +370,9 @@ func (g *Game) registerService() error {
 		return fmt.Errorf("[registerService] get external ip failed: %v", err)
 	}
 	return g.opts.registry.Register(g.ctx, &registry.ServiceInstance{
-		ID:       g.opts.id,
-		Name:     g.opts.serviceName,
-		Alias:    g.opts.name,
+		ID:       g.ID(),
+		Name:     g.ServiceName(),
+		Alias:    g.Name(),
 		Kind:     enum.NodeType_Game,
 		Endpoint: fmt.Sprintf("http://%s:8888", host), // 游戏服不暴露对外接口,固定任意值即可
 		State:    enum.NodeState_Work,
@@ -372,7 +388,7 @@ func (g *Game) watchGateService() error {
 		return fmt.Errorf("watch game service failed, registry is nil")
 	}
 	// 所有Game服务节点
-	services, err := reg.Services(g.ctx, g.opts.gateServiceName)
+	services, err := reg.Services(g.ctx, g.GateServiceName())
 	if err != nil {
 		return fmt.Errorf("watch gate service failed, GetServices err: %v", err)
 	}
@@ -382,7 +398,7 @@ func (g *Game) watchGateService() error {
 		g.subscribeGate(service.Name, service.ID)
 	}
 	// 监听Gate服务
-	w, err := reg.Watch(g.ctx, g.opts.gateServiceName)
+	w, err := reg.Watch(g.ctx, g.GateServiceName())
 	if err != nil {
 		return fmt.Errorf("watch game service failed, Watch err: %v", err)
 	}
@@ -409,7 +425,7 @@ func (g *Game) watchGateService() error {
 func (g *Game) subscribeGate(gateServiceName, id string) {
 
 	// 当前网关节点
-	game := enum.GameNodeName(g.opts.serviceName, g.opts.id, g.opts.name)
+	game := enum.GameNodeName(g.ServiceName(), g.ID(), g.Name())
 	// 目标游戏节点
 	gate := enum.GateNodeName(gateServiceName, id)
 	// topic
@@ -427,12 +443,12 @@ func (g *Game) subscribeGate(gateServiceName, id string) {
 // 清理订阅信息
 // svs 为最新的Gate服务实例列表
 func (g *Game) cleanSubscribe(svs []*registry.ServiceInstance) {
-	game := enum.GameNodeName(g.opts.serviceName, g.opts.id, g.opts.name)
+	game := enum.GameNodeName(g.ServiceName(), g.ID(), g.Name())
 
 	// 最新的所有Gate服务实例对应topic
 	newTopics := make([]string, 0, len(svs))
 	for _, sv := range svs {
-		gate := enum.GateNodeName(g.opts.gateServiceName, sv.ID)
+		gate := enum.GateNodeName(g.GateServiceName(), sv.ID)
 		tp := enum.Gate2GameTopic(gate, game)
 		newTopics = append(newTopics, tp)
 	}
