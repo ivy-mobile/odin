@@ -4,7 +4,7 @@ go 1.23.9
 
 require (
 	github.com/BurntSushi/toml v1.5.0
-	github.com/apache/rocketmq-clients/golang v0.0.0-20230321063829-41bfbcf6130d
+	github.com/apache/rocketmq-clients/golang/v5 v5.1.2
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/bytedance/sonic v1.13.3
 	github.com/fsnotify/fsnotify v1.9.0
@@ -102,6 +102,7 @@ require (
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20210501183033-44dafcb38ecc // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
