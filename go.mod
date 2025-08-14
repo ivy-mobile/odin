@@ -5,6 +5,7 @@ go 1.23.9
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/apache/rocketmq-clients/golang v0.0.0-20230321063829-41bfbcf6130d
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/bytedance/sonic v1.13.3
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/google/uuid v1.6.0
@@ -13,10 +14,12 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/nacos-group/nacos-sdk-go/v2 v2.3.2
 	github.com/nats-io/nats.go v1.43.0
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/olahol/melody v1.3.0
 	github.com/panjf2000/ants/v2 v2.11.3
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/rs/zerolog v1.34.0
+	github.com/sony/sonyflake/v2 v2.2.0
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
