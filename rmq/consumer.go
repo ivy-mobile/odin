@@ -25,10 +25,15 @@ type Consumer struct {
 
 // NewConsumer 消费者
 // golang.WithAwaitDuration(time.Second*5),
-func NewConsumer(endpoint, namespace, group string,
+func NewConsumer(
+	endpoint,
+	namespace,
+	group string,
+	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
 	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
 
+	opts = append(opts, golang.WithAwaitDuration(awaitDuration))
 	sc, err := golang.NewSimpleConsumer(
 		&golang.Config{
 			Endpoint:      endpoint,
