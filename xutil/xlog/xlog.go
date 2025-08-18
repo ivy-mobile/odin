@@ -19,14 +19,14 @@ var logger *XLogger
 type XLogger struct {
 	zerolog.Logger
 	mux          sync.Mutex
-	interval     int       // 日志切割时间间隔, 单位:h
-	lastFileTime time.Time // 上次log文件创建时间
-	path         string    // 日志文件存放路径
-	env          string    // 环境
-	serviceName  string    // 服务名
+	interval     time.Duration // 日志切割时间间隔, 单位:h
+	lastFileTime time.Time     // 上次log文件创建时间
+	path         string        // 日志文件存放路径
+	env          string        // 环境
+	serviceName  string        // 服务名
 }
 
-func Init(level, pathname string, interval int, serviceName, env string) {
+func Init(level, pathname string, interval time.Duration, serviceName, env string) {
 
 	switch strings.ToLower(level) {
 	case "debug":
@@ -148,7 +148,7 @@ func (log *XLogger) check() {
 		Init("debug", "", 0, "unknown", "unknown")
 	} else {
 		// 日志文件切割
-		if log.interval > 0 && time.Now().Add(-time.Hour*time.Duration(log.interval)).After(log.lastFileTime) {
+		if log.interval > 0 && time.Now().Add(-log.interval).After(log.lastFileTime) {
 			log.mux.Lock()
 			Init("debug", log.path, log.interval, log.serviceName, log.env)
 			log.mux.Unlock()
