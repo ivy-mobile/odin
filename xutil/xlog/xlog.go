@@ -27,7 +27,6 @@ type XLogger struct {
 }
 
 func Init(level, pathname string, interval time.Duration, serviceName, env string) {
-
 	switch strings.ToLower(level) {
 	case "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -46,10 +45,10 @@ func Init(level, pathname string, interval time.Duration, serviceName, env strin
 	}
 
 	//zerolog.TimeFieldFormat = zerolog.TimeFormatUnix // 更快更小
-	zerolog.TimeFieldFormat = "2006-01-02 15:04:05:000"
-	zerolog.TimestampFieldName = "timestamp"
-	zerolog.LevelFieldName = "Level"
-	zerolog.MessageFieldName = "msg"
+	//zerolog.TimeFieldFormat = "2006-01-02 15:04:05:000"
+	//zerolog.TimestampFieldName = "timestamp"
+	//zerolog.LevelFieldName = "Level"
+	//zerolog.MessageFieldName = "msg"
 
 	logger = &XLogger{
 		Logger:       zerolog.New(newOutput(pathname)).With().Logger(),
