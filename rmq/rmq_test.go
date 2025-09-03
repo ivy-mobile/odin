@@ -38,9 +38,7 @@ func TestRMQ_TAG(t *testing.T) {
 	}
 
 	// 消费者
-	c, err := NewConsumer(Endpoint, Namespace, Group, &credentials.SessionCredentials{},
-		golang.WithAwaitDuration(time.Second*5),
-	)
+	c, err := NewConsumer(Endpoint, Namespace, Group, time.Second*5, &credentials.SessionCredentials{})
 	assert.Equal(t, err, nil)
 
 	err = c.SubscribeByTag(Topic, TAG, func(msg *golang.MessageView) error {
@@ -85,9 +83,7 @@ func TestRMQ_ALL(t *testing.T) {
 	}
 
 	// 消费者
-	c, err := NewConsumer(Endpoint, Namespace, Group, &credentials.SessionCredentials{},
-		golang.WithAwaitDuration(time.Second*5),
-	)
+	c, err := NewConsumer(Endpoint, Namespace, Group, time.Second*5, &credentials.SessionCredentials{})
 	assert.Equal(t, err, nil)
 
 	err = c.Subscribe(Topic, func(msg *golang.MessageView) error {
@@ -132,9 +128,7 @@ func TestRMQ_SQL92(t *testing.T) {
 	}
 
 	// 消费者
-	c, err := NewConsumer(Endpoint, Namespace, Group, &credentials.SessionCredentials{},
-		golang.WithAwaitDuration(time.Second*5),
-	)
+	c, err := NewConsumer(Endpoint, Namespace, Group, time.Second*5, &credentials.SessionCredentials{})
 	assert.Equal(t, err, nil)
 
 	err = c.SubscribeBySQL92(Topic, "p1='v1'", func(msg *golang.MessageView) error {
