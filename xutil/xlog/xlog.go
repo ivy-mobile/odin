@@ -24,10 +24,11 @@ type XLogger struct {
 	path         string        // 日志文件存放路径
 	env          string        // 环境
 	serviceName  string        // 服务名
+	node         string        // 节点
 	ip           string        // ip
 }
 
-func Init(level, pathname string, interval time.Duration, serviceName, env, ip string) {
+func Init(level, pathname string, interval time.Duration, serviceName, env, node, ip string) {
 	switch strings.ToLower(level) {
 	case "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -53,27 +54,30 @@ func Init(level, pathname string, interval time.Duration, serviceName, env, ip s
 	//zerolog.MessageFieldName = "msg"
 
 	logger = &XLogger{
-		Logger:       zerolog.New(newOutput(pathname)).With().Logger(),
+		Logger:       zerolog.New(newOutput(pathname, ip)).With().Logger(),
 		interval:     interval,
 		mux:          sync.Mutex{},
 		lastFileTime: time.Now(),
 		path:         pathname,
 		env:          env,
 		serviceName:  serviceName,
+		node:         node,
 		ip:           ip,
 	}
 }
 
 // 获取输出 控制台/文件
 // 当pathname为空时,输出到控制台
-func newOutput(pathname string) io.Writer {
+func newOutput(pathname, node string) io.Writer {
 
 	// 1. 默认标准输出
 	// 2. 文件夹设置不为空时,写入文件
 	if pathname != "" {
-		now := time.Now().Format("2006-01-02_15:04:05")
-		filename := fmt.Sprintf("%s.log", now)
-
+		now := time.Now().Format("20060102_15:04:05")
+		var filename = fmt.Sprintf("%s.log", now)
+		if node != "" {
+			filename = fmt.Sprintf("%s_%s.log", node, now)
+		}
 		// 文件夹不存在,则创建
 		if !xfile.IsExist(pathname) {
 			err := os.MkdirAll(pathname, os.ModePerm)
@@ -127,32 +131,72 @@ func newEvent(level zerolog.Level) *zerolog.Event {
 	// 2.根据level返回Event
 	switch level {
 	case zerolog.DebugLevel:
-		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Debug().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.InfoLevel:
-		return logger.Logger.Info().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Info().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.WarnLevel:
-		return logger.Logger.Warn().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Warn().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.ErrorLevel:
-		return logger.Logger.Error().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Error().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.FatalLevel:
-		return logger.Logger.Fatal().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Fatal().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.PanicLevel:
-		return logger.Logger.Panic().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Panic().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	case zerolog.NoLevel:
-		return logger.Logger.Log().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Log().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	default:
-		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
+		return logger.Logger.Debug().
+			Str("env", logger.env).
+			Str("service", logger.serviceName).
+			Str("ip", logger.ip).
+			Str("node", logger.node).
+			Timestamp()
 	}
 }
 
 func (log *XLogger) check() {
 	if log == nil {
-		Init("debug", "", 0, "unknown", "unknown", "0.0.0.0")
+		Init("debug", "", 0, "unknown", "unknown", "", "0.0.0.0")
 	} else {
 		// 日志文件切割
 		if log.interval > 0 && time.Now().Add(-log.interval).After(log.lastFileTime) {
 			log.mux.Lock()
-			Init("debug", log.path, log.interval, log.serviceName, log.env, log.ip)
+			Init("debug", log.path, log.interval, log.serviceName, log.env, log.node, log.ip)
 			log.mux.Unlock()
 		}
 	}
