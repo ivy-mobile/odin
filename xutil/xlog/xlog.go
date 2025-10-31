@@ -48,7 +48,7 @@ func Init(level, pathname string, interval time.Duration, serviceName, env, node
 
 	//zerolog.TimeFieldFormat = zerolog.TimeFormatUnix // 更快更小
 	//zerolog.TimeFieldFormat = "2006-01-02 15:04:05" // 秒级,不带时区
-	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z700" // 毫秒级,带时区
+	//zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z700" // 毫秒级,带时区
 	//zerolog.TimestampFieldName = "timestamp"
 	//zerolog.LevelFieldName = "Level"
 	//zerolog.MessageFieldName = "msg"
