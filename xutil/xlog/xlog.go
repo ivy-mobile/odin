@@ -24,9 +24,10 @@ type XLogger struct {
 	path         string        // 日志文件存放路径
 	env          string        // 环境
 	serviceName  string        // 服务名
+	ip           string        // ip
 }
 
-func Init(level, pathname string, interval time.Duration, serviceName, env string) {
+func Init(level, pathname string, interval time.Duration, serviceName, env, ip string) {
 	switch strings.ToLower(level) {
 	case "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -59,6 +60,7 @@ func Init(level, pathname string, interval time.Duration, serviceName, env strin
 		path:         pathname,
 		env:          env,
 		serviceName:  serviceName,
+		ip:           ip,
 	}
 }
 
@@ -125,32 +127,32 @@ func newEvent(level zerolog.Level) *zerolog.Event {
 	// 2.根据level返回Event
 	switch level {
 	case zerolog.DebugLevel:
-		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.InfoLevel:
-		return logger.Logger.Info().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Info().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.WarnLevel:
-		return logger.Logger.Warn().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Warn().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.ErrorLevel:
-		return logger.Logger.Error().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Error().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.FatalLevel:
-		return logger.Logger.Fatal().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Fatal().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.PanicLevel:
-		return logger.Logger.Panic().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Panic().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	case zerolog.NoLevel:
-		return logger.Logger.Log().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Log().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	default:
-		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Timestamp()
+		return logger.Logger.Debug().Str("env", logger.env).Str("service", logger.serviceName).Str("ip", logger.ip).Timestamp()
 	}
 }
 
 func (log *XLogger) check() {
 	if log == nil {
-		Init("debug", "", 0, "unknown", "unknown")
+		Init("debug", "", 0, "unknown", "unknown", "0.0.0.0")
 	} else {
 		// 日志文件切割
 		if log.interval > 0 && time.Now().Add(-log.interval).After(log.lastFileTime) {
 			log.mux.Lock()
-			Init("debug", log.path, log.interval, log.serviceName, log.env)
+			Init("debug", log.path, log.interval, log.serviceName, log.env, log.ip)
 			log.mux.Unlock()
 		}
 	}
