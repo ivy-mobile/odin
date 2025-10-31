@@ -54,7 +54,7 @@ func Init(level, pathname string, interval time.Duration, serviceName, env, node
 	//zerolog.MessageFieldName = "msg"
 
 	logger = &XLogger{
-		Logger:       zerolog.New(newOutput(pathname, ip)).With().Logger(),
+		Logger:       zerolog.New(newOutput(pathname, node)).With().Logger(),
 		interval:     interval,
 		mux:          sync.Mutex{},
 		lastFileTime: time.Now(),
