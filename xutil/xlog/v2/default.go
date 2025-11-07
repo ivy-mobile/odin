@@ -115,7 +115,7 @@ func (d *defaultEntry) Any(k string, v any) Entry {
 	return d
 }
 
-func (d *defaultEntry) Err(k string, err error) Entry {
+func (d *defaultEntry) Err(err error) Entry {
 	d.e.Err(err)
 	return d
 }

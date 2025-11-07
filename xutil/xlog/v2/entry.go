@@ -14,7 +14,7 @@ type Entry interface {
 	Time(k string, v time.Time) Entry
 	Duration(k string, v time.Duration) Entry
 	Any(k string, v any) Entry
-	Err(k string, err error) Entry
+	Err(err error) Entry
 	Msg(message string)
 	Msgf(format string, args ...any)
 }
