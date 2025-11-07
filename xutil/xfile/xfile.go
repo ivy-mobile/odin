@@ -2,6 +2,8 @@ package xfile
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // IsExist checks if a file or directory exists at the given path.
@@ -20,4 +22,23 @@ func IsExist(path string) bool {
 		return false
 	}
 	return true
+}
+
+// JoinFilename 拼接filename
+// 如:
+// JoinFilename("/a/b/c.log", "-", "1")
+// 返回: /a/b/c-1.log
+func JoinFilename(filePath, sep, join string) string {
+	// 分离目录和文件名
+	dir := filepath.Dir(filePath)
+	fileName := filepath.Base(filePath)
+
+	// 处理文件名（不含扩展名）
+	ext := filepath.Ext(fileName)
+	nameWithoutExt := strings.TrimSuffix(fileName, ext)
+
+	newName := nameWithoutExt + sep + join
+
+	// 重新组合路径
+	return filepath.Join(dir, newName+ext)
 }
