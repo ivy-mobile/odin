@@ -4,6 +4,7 @@ import (
 	"runtime"
 
 	"github.com/ivy-mobile/odin/xutil/xlog"
+	xlogv2 "github.com/ivy-mobile/odin/xutil/xlog/v2"
 )
 
 // Recover 捕获异常
@@ -24,6 +25,21 @@ func Recover(panicHandler ...func(err any)) {
 				break
 			}
 			xlog.Error().Msgf("%s: %d", file, line)
+		}
+	}
+}
+
+// RecoverLogger 捕获异常
+func RecoverLogger(logger xlogv2.Logger) {
+	if err := recover(); err != nil {
+		// 默认处理方式
+		logger.Error().Msgf("[panic] %v", err)
+		for i := 0; ; i++ {
+			_, file, line, ok := runtime.Caller(i)
+			if !ok {
+				break
+			}
+			logger.Error().Msgf("[panic] %s: %d", file, line)
 		}
 	}
 }
