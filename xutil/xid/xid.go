@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+
 	"github.com/ivy-mobile/odin/xutil/xid/snowflake"
 	"github.com/ivy-mobile/odin/xutil/xid/sonyflake"
 	"github.com/ivy-mobile/odin/xutil/xid/ulid"

@@ -24,7 +24,7 @@ func TestDebug(t *testing.T) {
 	logger.Debug().Time("t", time.Now()).Msg("test1")
 	logger.Debug().Duration("d", time.Second).Msg("test1")
 	logger.Debug().Any("any", struct{}{}).Msg("test1")
-	logger.Debug().Err("err", errors.New("test error")).Msg("test1")
+	logger.Debug().Err(errors.New("test error")).Msg("test1")
 
 	logger.Debug().Int64("i64", 1).Msgf("test2")
 	logger.Debug().Int("int", 1).Msgf("test2")
@@ -47,7 +47,7 @@ func TestInfo(t *testing.T) {
 	logger.Info().Time("t", time.Now()).Msg("test1")
 	logger.Info().Duration("d", time.Second).Msg("test1")
 	logger.Info().Any("any", struct{}{}).Msg("test1")
-	logger.Info().Err("err", errors.New("test error")).Msg("test1")
+	logger.Info().Err(errors.New("test error")).Msg("test1")
 
 	logger.Info().Int64("i64", 1).Msgf("test2")
 	logger.Info().Int("int", 1).Msgf("test2")
@@ -57,7 +57,7 @@ func TestInfo(t *testing.T) {
 	logger.Info().Time("t", time.Now()).Msgf("test2")
 	logger.Info().Duration("d", time.Second).Msgf("test2")
 	logger.Info().Any("any", struct{}{}).Msgf("test2")
-	logger.Info().Err("err", errors.New("test error")).Msgf("test2")
+	logger.Info().Err(errors.New("test error")).Msgf("test2")
 }
 
 func TestWarn(t *testing.T) {
