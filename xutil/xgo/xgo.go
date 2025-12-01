@@ -55,3 +55,14 @@ func Go(fn func(), panicHandler ...func(err any)) {
 		fn()
 	}()
 }
+
+// GoBy 协程安全的执行函数
+func GoBy(fn func(), logger xlogv2.Logger) {
+	if fn == nil {
+		return
+	}
+	go func() {
+		defer RecoverLogger(logger)
+		fn()
+	}()
+}
