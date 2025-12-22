@@ -1,0 +1,9 @@
+nacos:
+  ip_addr: 10.80.1.67
+  port: 8080
+# 游戏服务配置 - 当 启动命令为 go run app.go -tags=local 时，会使用以下配置,否则从Nacos读取
+application:
+  game_id: 102
+  state: 25s
+
+

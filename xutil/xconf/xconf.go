@@ -1,6 +1,11 @@
 package xconf
 
 import (
+	"path/filepath"
+	"strings"
+
+	"github.com/go-viper/mapstructure/v2"
+
 	"github.com/ivy-mobile/odin/xutil/xlog"
 
 	"github.com/fsnotify/fsnotify"
@@ -34,6 +39,25 @@ func LoadConfigFromFile(filename string, v any, listen bool) error {
 	return nil
 }
 
+func tagFromFilename(filename string) string {
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".yaml", ".yml":
+		return "yaml"
+	case ".json":
+		return "json"
+	case ".toml":
+		return "toml"
+	case ".ini":
+		return "ini"
+	case ".hcl":
+		return "hcl"
+	default:
+		return "mapstructure"
+	}
+}
+
 // load loads a configuration file into a Viper instance and unmarshals it into a provided struct.
 //
 // vp: A pointer to a Viper instance.
@@ -46,5 +70,9 @@ func load(vp *viper.Viper, filename string, v any) error {
 	if err := vp.ReadInConfig(); err != nil {
 		return err
 	}
-	return vp.Unmarshal(v)
+
+	tag := tagFromFilename(filename)
+	return vp.Unmarshal(v, func(dc *mapstructure.DecoderConfig) {
+		dc.TagName = tag
+	})
 }
