@@ -1,0 +1,30 @@
+syntax = "proto3";
+package envelope;
+option go_package = "./envelope;envelope";
+
+// 统一消息头
+message Header {
+  uint64 seq = 1; // 序列
+  int64 uid = 2; // 用户ID
+  int32 game_id = 3; // 游戏id(唯一标识)
+  string msg_id = 4; // 消息ID
+  int64 timestamp = 5; // 时间戳 - 毫秒
+  string version = 6; // 版本号
+}
+
+// 客户端输入消息
+message InputMessage {
+  Header header = 1; // 消息头
+  string route = 2;  // 路由ID
+  bytes payload = 3; // 请求体数据(序列化后)
+}
+
+// 服务端输出消息 (响应 / 推送)
+message OutputMessage {
+  Header Header = 1;     // 消息头
+  uint32 msg_type = 2;   // 1: 服务端主动推送, 2: 响应请求
+  string error_code = 3; // 当 msgType = 2 时，表示错误码，具体参考: https://alidocs.dingtalk.com/i/nodes/YndMj49yWjEKb466f0A374RP83pmz5aA?utm_scene=team_space&iframeQuery=sheet_range%3Dkgqie6hm_5_3_1_1
+  string error_msg = 4;  // 当 msgType = 2 时，错误提示信息
+  string msg_tag = 5;    // 消息标签
+  bytes data = 6;        // 业务数据，序列化后
+}
