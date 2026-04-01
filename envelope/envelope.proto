@@ -4,12 +4,12 @@ option go_package = "./envelope;envelope";
 
 // 统一消息头
 message Header {
-  uint64 seq = 1; // 序列
-  int64 uid = 2; // 用户ID
-  int32 game_id = 3; // 游戏id(唯一标识)
-  string msg_id = 4; // 消息ID
+  uint64 seq = 1;      // 序列
+  int64 uid = 2;       // 用户ID
+  int32 game_id = 3;   // 游戏id(唯一标识)
+  string msg_id = 4;   // 消息ID
   int64 timestamp = 5; // 时间戳 - 毫秒
-  string version = 6; // 版本号
+  string version = 6;  // 版本号
 }
 
 // 客户端输入消息
