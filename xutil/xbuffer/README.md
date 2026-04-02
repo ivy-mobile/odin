@@ -17,7 +17,7 @@ writer_pool.go
 ```
 
 ## 核心结构体和接口
-### `Buffer` 接口 <mcfile name="buffer.go" path="/root/codes/github.com/ivy-mobile/odin/xbuffer/buffer.go"></mcfile>
+### `Buffer` 接口
 `Buffer` 接口定义了一系列用于操作缓冲区的方法，包括获取长度、获取字节数据、挂载数据、分配内存、迭代和释放资源等。
 ```go
 package xbuffer
@@ -38,7 +38,7 @@ type Buffer interface {
 }
 ```
 
-### `Reader` 结构体 <mcfile name="reader.go" path="/root/codes/github.com/ivy-mobile/odin/xbuffer/reader.go"></mcfile>
+### `Reader` 结构体
 `Reader` 结构体用于从二进制数据中读取各种类型的数据。它支持多种数据类型的读取，并且可以设置字节序。
 ```go
 package xbuffer
@@ -66,7 +66,7 @@ func (r *Reader) ReadInt32(order binary.ByteOrder) (int32, error) {
 }
 ```
 
-### `Writer` 结构体 <mcfile name="writer.go" path="/root/codes/github.com/ivy-mobile/odin/xbuffer/writer.go"></mcfile>
+### `Writer` 结构体
 `Writer` 结构体用于将各种类型的数据写入二进制缓冲区。它支持多种数据类型的写入，并且可以设置字节序。
 ```go
 package xbuffer

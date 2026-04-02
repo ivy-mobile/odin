@@ -5,8 +5,7 @@
 
 ## 项目结构
 ```
-/root/codes/github.com/ivy-mobile/odin/xvalue/
-└── xvalue.go
+xvalue.go
 ```
 
 ## 核心结构体和接口

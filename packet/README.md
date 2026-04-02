@@ -15,7 +15,6 @@
 
 ## 核心结构体和接口
 ### `Message` 结构体
-<mcfile name="message.go" path="/root/codes/github.com/ivy-mobile/odin/packet/message.go"></mcfile>
 ```go
 type Message struct {
     Seq    int32  // 序列号
@@ -25,7 +24,6 @@ type Message struct {
 ```
 
 ### `Packer` 接口
-<mcfile name="packer.go" path="/root/codes/github.com/ivy-mobile/odin/packet/packer.go"></mcfile>
 ```go
 type Packer interface {
     // ReadMessage 读取消息
@@ -45,7 +43,6 @@ type Packer interface {
 
 ## 核心函数
 ### 全局打包器初始化
-<mcfile name="packet.go" path="/root/codes/github.com/ivy-mobile/odin/packet/packet.go"></mcfile>
 ```go
 func init() {
     globalPacker = NewPacker()
@@ -59,7 +56,6 @@ func init() {
 - `CheckHeartbeat(data []byte) (bool, error)`: 检测心跳包。
 
 ## 错误处理
-<mcfile name="errors.go" path="/root/codes/github.com/ivy-mobile/odin/packet/errors.go"></mcfile>
 ```go
 var (
     ErrInvalidReader   = errors.New("invalid reader")
