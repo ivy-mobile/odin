@@ -11,7 +11,7 @@ import (
 // panicHandler: 自定义Panic信息处理
 func Recover(panicHandler ...func(err any)) {
 	if err := recover(); err != nil {
-		// 支持自定义Panic信息处理
+		// 支持自定义 Panic 信息处理
 		if len(panicHandler) > 0 && panicHandler[0] != nil {
 			panicHandler[0](err)
 			return
