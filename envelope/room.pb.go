@@ -122,11 +122,11 @@ func (RoomReadyRequest_Action) EnumDescriptor() ([]byte, []int) {
 // 房间配置
 type RoomConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	MaxPlayerNum  uint32                 `protobuf:"varint,1,opt,name=max_player_num,json=maxPlayerNum,proto3" json:"max_player_num,omitempty"`                                      // 最大玩家数量
+	MaxMemberNum  uint32                 `protobuf:"varint,1,opt,name=max_member_num,json=maxMemberNum,proto3" json:"max_member_num,omitempty"`                                      // 最大成员数量
 	RoomType      int32                  `protobuf:"varint,2,opt,name=room_type,json=roomType,proto3" json:"room_type,omitempty"`                                                    // 房间类型 (各游戏自行解释, e.g. 0-普通房, 1-VIP房)
 	Mode          int32                  `protobuf:"varint,3,opt,name=mode,proto3" json:"mode,omitempty"`                                                                            // 模式 (各游戏自行解释)
 	GameId        int32                  `protobuf:"varint,4,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`                                                          // 游戏ID
-	MinPlayerNum  uint32                 `protobuf:"varint,5,opt,name=min_player_num,json=minPlayerNum,proto3" json:"min_player_num,omitempty"`                                      // 最小玩家数量 (至少需要多少人开始游戏)
+	MinMemberNum  uint32                 `protobuf:"varint,5,opt,name=min_member_num,json=minMemberNum,proto3" json:"min_member_num,omitempty"`                                      // 最小成员数量 (至少需要多少人开始游戏)
 	Extra         map[string]*Value      `protobuf:"bytes,6,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // 扩展字段
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -162,9 +162,9 @@ func (*RoomConfig) Descriptor() ([]byte, []int) {
 	return file_room_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RoomConfig) GetMaxPlayerNum() uint32 {
+func (x *RoomConfig) GetMaxMemberNum() uint32 {
 	if x != nil {
-		return x.MaxPlayerNum
+		return x.MaxMemberNum
 	}
 	return 0
 }
@@ -190,9 +190,9 @@ func (x *RoomConfig) GetGameId() int32 {
 	return 0
 }
 
-func (x *RoomConfig) GetMinPlayerNum() uint32 {
+func (x *RoomConfig) GetMinMemberNum() uint32 {
 	if x != nil {
-		return x.MinPlayerNum
+		return x.MinMemberNum
 	}
 	return 0
 }
@@ -210,7 +210,7 @@ type RoomInfo struct {
 	RoomId        int64                  `protobuf:"varint,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`                                                          // 房间ID
 	RoomName      string                 `protobuf:"bytes,2,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`                                                     // 房间名称
 	Config        *RoomConfig            `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`                                                                         // 房间配置
-	Players       []*RoomPlayer          `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                                                       // 玩家列表
+	Members       []*Member              `protobuf:"bytes,4,rep,name=members,proto3" json:"members,omitempty"`                                                                       // 成员列表
 	CreateTime    int64                  `protobuf:"varint,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`                                              // 创建时间 ms
 	UpdateTime    int64                  `protobuf:"varint,6,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`                                              // 更新时间 ms
 	State         RoomInfo_State         `protobuf:"varint,7,opt,name=state,proto3,enum=envelope.RoomInfo_State" json:"state,omitempty"`                                             // 状态
@@ -270,9 +270,9 @@ func (x *RoomInfo) GetConfig() *RoomConfig {
 	return nil
 }
 
-func (x *RoomInfo) GetPlayers() []*RoomPlayer {
+func (x *RoomInfo) GetMembers() []*Member {
 	if x != nil {
-		return x.Players
+		return x.Members
 	}
 	return nil
 }
@@ -882,24 +882,24 @@ var File_room_proto protoreflect.FileDescriptor
 const file_room_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"room.proto\x12\benvelope\x1a\x11room_player.proto\x1a\vvalue.proto\"\xa4\x02\n" +
+	"room.proto\x12\benvelope\x1a\fmember.proto\x1a\vvalue.proto\"\xa4\x02\n" +
 	"\n" +
 	"RoomConfig\x12$\n" +
-	"\x0emax_player_num\x18\x01 \x01(\rR\fmaxPlayerNum\x12\x1b\n" +
+	"\x0emax_member_num\x18\x01 \x01(\rR\fmaxMemberNum\x12\x1b\n" +
 	"\troom_type\x18\x02 \x01(\x05R\broomType\x12\x12\n" +
 	"\x04mode\x18\x03 \x01(\x05R\x04mode\x12\x17\n" +
 	"\agame_id\x18\x04 \x01(\x05R\x06gameId\x12$\n" +
-	"\x0emin_player_num\x18\x05 \x01(\rR\fminPlayerNum\x125\n" +
+	"\x0emin_member_num\x18\x05 \x01(\rR\fminMemberNum\x125\n" +
 	"\x05extra\x18\x06 \x03(\v2\x1f.envelope.RoomConfig.ExtraEntryR\x05extra\x1aI\n" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xc9\x03\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xc5\x03\n" +
 	"\bRoomInfo\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\x03R\x06roomId\x12\x1b\n" +
 	"\troom_name\x18\x02 \x01(\tR\broomName\x12,\n" +
-	"\x06config\x18\x03 \x01(\v2\x14.envelope.RoomConfigR\x06config\x12.\n" +
-	"\aplayers\x18\x04 \x03(\v2\x14.envelope.RoomPlayerR\aplayers\x12\x1f\n" +
+	"\x06config\x18\x03 \x01(\v2\x14.envelope.RoomConfigR\x06config\x12*\n" +
+	"\amembers\x18\x04 \x03(\v2\x10.envelope.MemberR\amembers\x12\x1f\n" +
 	"\vcreate_time\x18\x05 \x01(\x03R\n" +
 	"createTime\x12\x1f\n" +
 	"\vupdate_time\x18\x06 \x01(\x03R\n" +
@@ -986,13 +986,13 @@ var file_room_proto_goTypes = []any{
 	nil,                          // 16: envelope.RoomConfig.ExtraEntry
 	nil,                          // 17: envelope.RoomInfo.ExtraEntry
 	nil,                          // 18: envelope.QuickMatchRequest.ExtraEntry
-	(*RoomPlayer)(nil),           // 19: envelope.RoomPlayer
+	(*Member)(nil),               // 19: envelope.Member
 	(*Value)(nil),                // 20: envelope.Value
 }
 var file_room_proto_depIdxs = []int32{
 	16, // 0: envelope.RoomConfig.extra:type_name -> envelope.RoomConfig.ExtraEntry
 	2,  // 1: envelope.RoomInfo.config:type_name -> envelope.RoomConfig
-	19, // 2: envelope.RoomInfo.players:type_name -> envelope.RoomPlayer
+	19, // 2: envelope.RoomInfo.members:type_name -> envelope.Member
 	0,  // 3: envelope.RoomInfo.state:type_name -> envelope.RoomInfo.State
 	17, // 4: envelope.RoomInfo.extra:type_name -> envelope.RoomInfo.ExtraEntry
 	18, // 5: envelope.QuickMatchRequest.extra:type_name -> envelope.QuickMatchRequest.ExtraEntry
@@ -1015,7 +1015,7 @@ func file_room_proto_init() {
 	if File_room_proto != nil {
 		return
 	}
-	file_room_player_proto_init()
+	file_member_proto_init()
 	file_value_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{

@@ -2,25 +2,25 @@ syntax = "proto3";
 package envelope;
 option go_package = "./envelope;envelope";
 
-import "room_player.proto";
+import "member.proto";
 import "value.proto";
 
 // 房间配置
 message RoomConfig {
-  uint32 max_player_num = 1;                  // 最大玩家数量
-  int32 room_type = 2;                        // 房间类型 (各游戏自行解释, e.g. 0-普通房, 1-VIP房)
-  int32 mode = 3;                             // 模式 (各游戏自行解释)
-  int32 game_id = 4;                          // 游戏ID
-  uint32 min_player_num = 5;                   // 最小玩家数量 (至少需要多少人开始游戏)
+  uint32 max_member_num = 1;    // 最大成员数量
+  int32 room_type = 2;          // 房间类型 (各游戏自行解释, e.g. 0-普通房, 1-VIP房)
+  int32 mode = 3;               // 模式 (各游戏自行解释)
+  int32 game_id = 4;            // 游戏ID
+  uint32 min_member_num = 5;    // 最小成员数量 (至少需要多少人开始游戏)
   map<string, Value> extra = 6; // 扩展字段
 }
 
 // 房间信息
 message RoomInfo {
-  int64 room_id = 1;                         // 房间ID
+  int64 room_id = 1;                          // 房间ID
   string room_name = 2;                       // 房间名称
   RoomConfig config = 3;                      // 房间配置
-  repeated RoomPlayer players = 4;                // 玩家列表
+  repeated Member members = 4;                // 成员列表
   int64 create_time = 5;                      // 创建时间 ms
   int64 update_time = 6;                      // 更新时间 ms
   State state = 7;                            // 状态
