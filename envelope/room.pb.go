@@ -210,7 +210,7 @@ type RoomInfo struct {
 	RoomId        int64                  `protobuf:"varint,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`                                                          // 房间ID
 	RoomName      string                 `protobuf:"bytes,2,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`                                                     // 房间名称
 	Config        *RoomConfig            `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`                                                                         // 房间配置
-	Players       []*Player              `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                                                       // 玩家列表
+	Players       []*RoomPlayer          `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                                                       // 玩家列表
 	CreateTime    int64                  `protobuf:"varint,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`                                              // 创建时间 ms
 	UpdateTime    int64                  `protobuf:"varint,6,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`                                              // 更新时间 ms
 	State         RoomInfo_State         `protobuf:"varint,7,opt,name=state,proto3,enum=envelope.RoomInfo_State" json:"state,omitempty"`                                             // 状态
@@ -270,7 +270,7 @@ func (x *RoomInfo) GetConfig() *RoomConfig {
 	return nil
 }
 
-func (x *RoomInfo) GetPlayers() []*Player {
+func (x *RoomInfo) GetPlayers() []*RoomPlayer {
 	if x != nil {
 		return x.Players
 	}
@@ -882,7 +882,7 @@ var File_room_proto protoreflect.FileDescriptor
 const file_room_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"room.proto\x12\benvelope\x1a\fplayer.proto\x1a\vvalue.proto\"\xa4\x02\n" +
+	"room.proto\x12\benvelope\x1a\x11room_player.proto\x1a\vvalue.proto\"\xa4\x02\n" +
 	"\n" +
 	"RoomConfig\x12$\n" +
 	"\x0emax_player_num\x18\x01 \x01(\rR\fmaxPlayerNum\x12\x1b\n" +
@@ -894,12 +894,12 @@ const file_room_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xc6\x03\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xca\x03\n" +
 	"\bRoomInfo\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\x03R\x06roomId\x12\x1b\n" +
 	"\troom_name\x18\x02 \x01(\tR\broomName\x12,\n" +
-	"\x06config\x18\x03 \x01(\v2\x14.envelope.RoomConfigR\x06config\x12*\n" +
-	"\aplayers\x18\x04 \x03(\v2\x10.envelope.PlayerR\aplayers\x12\x1f\n" +
+	"\x06config\x18\x03 \x01(\v2\x14.envelope.RoomConfigR\x06config\x12.\n" +
+	"\aplayers\x18\x04 \x03(\v2\x14.envelope.RoomPlayerR\aplayers\x12\x1f\n" +
 	"\vcreate_time\x18\x05 \x01(\x03R\n" +
 	"createTime\x12\x1f\n" +
 	"\vupdate_time\x18\x06 \x01(\x03R\n" +
@@ -986,13 +986,13 @@ var file_room_proto_goTypes = []any{
 	nil,                          // 16: envelope.RoomConfig.ExtraEntry
 	nil,                          // 17: envelope.RoomInfo.ExtraEntry
 	nil,                          // 18: envelope.QuickMatchRequest.ExtraEntry
-	(*Player)(nil),               // 19: envelope.Player
+	(*RoomPlayer)(nil),           // 19: envelope.RoomPlayer
 	(*Value)(nil),                // 20: envelope.Value
 }
 var file_room_proto_depIdxs = []int32{
 	16, // 0: envelope.RoomConfig.extra:type_name -> envelope.RoomConfig.ExtraEntry
 	2,  // 1: envelope.RoomInfo.config:type_name -> envelope.RoomConfig
-	19, // 2: envelope.RoomInfo.players:type_name -> envelope.Player
+	19, // 2: envelope.RoomInfo.players:type_name -> envelope.RoomPlayer
 	0,  // 3: envelope.RoomInfo.state:type_name -> envelope.RoomInfo.State
 	17, // 4: envelope.RoomInfo.extra:type_name -> envelope.RoomInfo.ExtraEntry
 	18, // 5: envelope.QuickMatchRequest.extra:type_name -> envelope.QuickMatchRequest.ExtraEntry
@@ -1015,7 +1015,7 @@ func file_room_proto_init() {
 	if File_room_proto != nil {
 		return
 	}
-	file_player_proto_init()
+	file_room_player_proto_init()
 	file_value_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{

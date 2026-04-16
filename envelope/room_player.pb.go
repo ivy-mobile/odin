@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.31.1
-// source: player.proto
+// source: room_player.proto
 
 package envelope
 
@@ -22,7 +22,7 @@ const (
 )
 
 // 玩家信息
-type Player struct {
+type RoomPlayer struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Uid           int64                  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`                                                                              // 玩家ID
 	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`                                                                     // 昵称
@@ -35,21 +35,21 @@ type Player struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Player) Reset() {
-	*x = Player{}
-	mi := &file_player_proto_msgTypes[0]
+func (x *RoomPlayer) Reset() {
+	*x = RoomPlayer{}
+	mi := &file_room_player_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Player) String() string {
+func (x *RoomPlayer) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Player) ProtoMessage() {}
+func (*RoomPlayer) ProtoMessage() {}
 
-func (x *Player) ProtoReflect() protoreflect.Message {
-	mi := &file_player_proto_msgTypes[0]
+func (x *RoomPlayer) ProtoReflect() protoreflect.Message {
+	mi := &file_room_player_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,99 +60,100 @@ func (x *Player) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Player.ProtoReflect.Descriptor instead.
-func (*Player) Descriptor() ([]byte, []int) {
-	return file_player_proto_rawDescGZIP(), []int{0}
+// Deprecated: Use RoomPlayer.ProtoReflect.Descriptor instead.
+func (*RoomPlayer) Descriptor() ([]byte, []int) {
+	return file_room_player_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Player) GetUid() int64 {
+func (x *RoomPlayer) GetUid() int64 {
 	if x != nil {
 		return x.Uid
 	}
 	return 0
 }
 
-func (x *Player) GetNickname() string {
+func (x *RoomPlayer) GetNickname() string {
 	if x != nil {
 		return x.Nickname
 	}
 	return ""
 }
 
-func (x *Player) GetAvatar() string {
+func (x *RoomPlayer) GetAvatar() string {
 	if x != nil {
 		return x.Avatar
 	}
 	return ""
 }
 
-func (x *Player) GetGender() int32 {
+func (x *RoomPlayer) GetGender() int32 {
 	if x != nil {
 		return x.Gender
 	}
 	return 0
 }
 
-func (x *Player) GetSeatId() int32 {
+func (x *RoomPlayer) GetSeatId() int32 {
 	if x != nil {
 		return x.SeatId
 	}
 	return 0
 }
 
-func (x *Player) GetIsReady() bool {
+func (x *RoomPlayer) GetIsReady() bool {
 	if x != nil {
 		return x.IsReady
 	}
 	return false
 }
 
-func (x *Player) GetExtra() map[string]*Value {
+func (x *RoomPlayer) GetExtra() map[string]*Value {
 	if x != nil {
 		return x.Extra
 	}
 	return nil
 }
 
-var File_player_proto protoreflect.FileDescriptor
+var File_room_player_proto protoreflect.FileDescriptor
 
-const file_player_proto_rawDesc = "" +
+const file_room_player_proto_rawDesc = "" +
 	"\n" +
-	"\fplayer.proto\x12\benvelope\x1a\vvalue.proto\"\x98\x02\n" +
-	"\x06Player\x12\x10\n" +
+	"\x11room_player.proto\x12\benvelope\x1a\vvalue.proto\"\xa0\x02\n" +
+	"\n" +
+	"RoomPlayer\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\x03R\x03uid\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
 	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x16\n" +
 	"\x06gender\x18\x04 \x01(\x05R\x06gender\x12\x17\n" +
 	"\aseat_id\x18\x05 \x01(\x05R\x06seatId\x12\x19\n" +
-	"\bis_ready\x18\x06 \x01(\bR\aisReady\x121\n" +
-	"\x05extra\x18\a \x03(\v2\x1b.envelope.Player.ExtraEntryR\x05extra\x1aI\n" +
+	"\bis_ready\x18\x06 \x01(\bR\aisReady\x125\n" +
+	"\x05extra\x18\a \x03(\v2\x1f.envelope.RoomPlayer.ExtraEntryR\x05extra\x1aI\n" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
 	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01B\x15Z\x13./envelope;envelopeb\x06proto3"
 
 var (
-	file_player_proto_rawDescOnce sync.Once
-	file_player_proto_rawDescData []byte
+	file_room_player_proto_rawDescOnce sync.Once
+	file_room_player_proto_rawDescData []byte
 )
 
-func file_player_proto_rawDescGZIP() []byte {
-	file_player_proto_rawDescOnce.Do(func() {
-		file_player_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_player_proto_rawDesc), len(file_player_proto_rawDesc)))
+func file_room_player_proto_rawDescGZIP() []byte {
+	file_room_player_proto_rawDescOnce.Do(func() {
+		file_room_player_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_room_player_proto_rawDesc), len(file_room_player_proto_rawDesc)))
 	})
-	return file_player_proto_rawDescData
+	return file_room_player_proto_rawDescData
 }
 
-var file_player_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_player_proto_goTypes = []any{
-	(*Player)(nil), // 0: envelope.Player
-	nil,            // 1: envelope.Player.ExtraEntry
-	(*Value)(nil),  // 2: envelope.Value
+var file_room_player_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_room_player_proto_goTypes = []any{
+	(*RoomPlayer)(nil), // 0: envelope.RoomPlayer
+	nil,                // 1: envelope.RoomPlayer.ExtraEntry
+	(*Value)(nil),      // 2: envelope.Value
 }
-var file_player_proto_depIdxs = []int32{
-	1, // 0: envelope.Player.extra:type_name -> envelope.Player.ExtraEntry
-	2, // 1: envelope.Player.ExtraEntry.value:type_name -> envelope.Value
+var file_room_player_proto_depIdxs = []int32{
+	1, // 0: envelope.RoomPlayer.extra:type_name -> envelope.RoomPlayer.ExtraEntry
+	2, // 1: envelope.RoomPlayer.ExtraEntry.value:type_name -> envelope.Value
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -160,9 +161,9 @@ var file_player_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_player_proto_init() }
-func file_player_proto_init() {
-	if File_player_proto != nil {
+func init() { file_room_player_proto_init() }
+func file_room_player_proto_init() {
+	if File_room_player_proto != nil {
 		return
 	}
 	file_value_proto_init()
@@ -170,17 +171,17 @@ func file_player_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_player_proto_rawDesc), len(file_player_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_room_player_proto_rawDesc), len(file_room_player_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_player_proto_goTypes,
-		DependencyIndexes: file_player_proto_depIdxs,
-		MessageInfos:      file_player_proto_msgTypes,
+		GoTypes:           file_room_player_proto_goTypes,
+		DependencyIndexes: file_room_player_proto_depIdxs,
+		MessageInfos:      file_room_player_proto_msgTypes,
 	}.Build()
-	File_player_proto = out.File
-	file_player_proto_goTypes = nil
-	file_player_proto_depIdxs = nil
+	File_room_player_proto = out.File
+	file_room_player_proto_goTypes = nil
+	file_room_player_proto_depIdxs = nil
 }

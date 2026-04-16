@@ -2,7 +2,7 @@ syntax = "proto3";
 package envelope;
 option go_package = "./envelope;envelope";
 
-import "player.proto";
+import "room_player.proto";
 import "value.proto";
 
 // 房间配置
@@ -20,7 +20,7 @@ message RoomInfo {
   int64 room_id = 1;                         // 房间ID
   string room_name = 2;                       // 房间名称
   RoomConfig config = 3;                      // 房间配置
-  repeated Player players = 4;                // 玩家列表
+  repeated RoomPlayer players = 4;                // 玩家列表
   int64 create_time = 5;                      // 创建时间 ms
   int64 update_time = 6;                      // 更新时间 ms
   State state = 7;                            // 状态

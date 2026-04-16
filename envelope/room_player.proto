@@ -5,7 +5,7 @@ option go_package = "./envelope;envelope";
 import "value.proto";
 
 // 玩家信息
-message Player {
+message RoomPlayer {
   int64 uid = 1;                // 玩家ID
   string nickname = 2;          // 昵称
   string avatar = 3;            // 头像
