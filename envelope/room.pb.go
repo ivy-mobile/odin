@@ -24,25 +24,25 @@ const (
 type RoomInfo_State int32
 
 const (
-	RoomInfo_WAITING  RoomInfo_State = 0 // 等待中
-	RoomInfo_STARTING RoomInfo_State = 1 // 开始中 (玩家准备就绪，游戏程序准备中; 视具体游戏而定)
-	RoomInfo_GAMING   RoomInfo_State = 2 // 游戏中
-	RoomInfo_OVER     RoomInfo_State = 3 // 结束
+	RoomInfo_WAITING RoomInfo_State = 0 // 等待中
+	RoomInfo_LOADING RoomInfo_State = 1 // 加载中 (玩家准备就绪，游戏程序准备中; 视具体游戏而定)
+	RoomInfo_GAMING  RoomInfo_State = 2 // 游戏中
+	RoomInfo_OVER    RoomInfo_State = 3 // 结束
 )
 
 // Enum value maps for RoomInfo_State.
 var (
 	RoomInfo_State_name = map[int32]string{
 		0: "WAITING",
-		1: "STARTING",
+		1: "LOADING",
 		2: "GAMING",
 		3: "OVER",
 	}
 	RoomInfo_State_value = map[string]int32{
-		"WAITING":  0,
-		"STARTING": 1,
-		"GAMING":   2,
-		"OVER":     3,
+		"WAITING": 0,
+		"LOADING": 1,
+		"GAMING":  2,
+		"OVER":    3,
 	}
 )
 
@@ -894,7 +894,7 @@ const file_room_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xca\x03\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"\xc9\x03\n" +
 	"\bRoomInfo\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\x03R\x06roomId\x12\x1b\n" +
 	"\troom_name\x18\x02 \x01(\tR\broomName\x12,\n" +
@@ -909,10 +909,10 @@ const file_room_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
-	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"8\n" +
+	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"7\n" +
 	"\x05State\x12\v\n" +
-	"\aWAITING\x10\x00\x12\f\n" +
-	"\bSTARTING\x10\x01\x12\n" +
+	"\aWAITING\x10\x00\x12\v\n" +
+	"\aLOADING\x10\x01\x12\n" +
 	"\n" +
 	"\x06GAMING\x10\x02\x12\b\n" +
 	"\x04OVER\x10\x03\"\xb0\x01\n" +

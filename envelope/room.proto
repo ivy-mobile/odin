@@ -28,7 +28,7 @@ message RoomInfo {
 
   enum State {
     WAITING = 0;  // 等待中
-    STARTING = 1; // 开始中 (玩家准备就绪，游戏程序准备中; 视具体游戏而定)
+    LOADING = 1;  // 加载中 (玩家准备就绪，游戏程序准备中; 视具体游戏而定)
     GAMING = 2;   // 游戏中
     OVER = 3;     // 结束
   }
