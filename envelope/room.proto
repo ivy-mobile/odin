@@ -1,0 +1,107 @@
+syntax = "proto3";
+package envelope;
+option go_package = "./envelope;envelope";
+
+import "player.proto";
+import "value.proto";
+
+// 房间配置
+message RoomConfig {
+  uint32 max_player_num = 1;                  // 最大玩家数量
+  int32 room_type = 2;                        // 房间类型 (各游戏自行解释, e.g. 0-普通房, 1-VIP房)
+  int32 mode = 3;                             // 模式 (各游戏自行解释)
+  int32 game_id = 4;                          // 游戏ID
+  uint32 min_player_num = 5;                   // 最小玩家数量 (至少需要多少人开始游戏)
+  map<string, Value> extra = 6; // 扩展字段
+}
+
+// 房间信息
+message RoomInfo {
+  int64 room_id = 1;                         // 房间ID
+  string room_name = 2;                       // 房间名称
+  RoomConfig config = 3;                      // 房间配置
+  repeated Player players = 4;                // 玩家列表
+  int64 create_time = 5;                      // 创建时间 ms
+  int64 update_time = 6;                      // 更新时间 ms
+  State state = 7;                            // 状态
+  map<string, Value> extra = 8; // 扩展字段
+
+  enum State {
+    WAITING = 0;  // 等待中
+    STARTING = 1; // 开始中 (玩家准备就绪，游戏程序准备中; 视具体游戏而定)
+    GAMING = 2;   // 游戏中
+    OVER = 3;     // 结束
+  }
+}
+
+// 快速匹配 [请求]
+message QuickMatchRequest {
+  int32 mode = 1;               // 模式 (各游戏自行解释)
+  map<string, Value> extra = 2; // 扩展字段
+}
+
+// 快速匹配 [响应]
+message QuickMatchResponse {
+  RoomInfo room_info = 1; // 房间信息
+}
+
+// 创建房间 [请求]
+message RoomCreateRequest {
+  int64 room_id = 1;
+}
+
+// 创建房间 [响应]
+message RoomCreateResponse {
+  RoomInfo room_info = 1; // 房间快照
+}
+
+// 加入房间 [请求]
+message RoomJoinRequest {
+  int64 room_id = 1;     // 房间ID
+  string password = 2;   // 房间密码
+}
+
+// 加入房间 [响应]
+message RoomJoinResponse {
+  RoomInfo room_info = 1; // 房间快照
+}
+
+// 准备/取消准备 [请求]
+message RoomReadyRequest {
+  int64 room_id = 1;  // 房间ID
+  int64 seat_id = 2;  // 座位ID
+  Action act = 3;     // 操作类型
+
+  enum Action {
+    READY = 0;        // 准备
+    CANCEL_READY = 1; // 取消准备
+  }
+}
+
+// 准备/取消准备 [响应]
+message RoomReadyResponse {
+
+}
+
+// 退出房间 [请求]
+message RoomExitRequest {
+  int64 room_id = 1;  // 房间ID
+}
+
+// 退出房间 [响应]
+message RoomExitResponse {
+
+}
+
+// 踢出玩家 [请求]
+message KickPlayerRequest {
+  int64 room_id = 1;   // 房间ID
+  int32 seat_id = 2;   // 座位ID (视具体游戏而定)
+  int64 player_id = 3; // 玩家ID (视具体游戏而定)
+  string reason = 4;   // 踢出原因
+}
+
+// 踢出玩家 [响应]
+message KickPlayerResponse {
+
+}

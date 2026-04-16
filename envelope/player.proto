@@ -1,0 +1,17 @@
+syntax = "proto3";
+package envelope;
+option go_package = "./envelope;envelope";
+
+import "value.proto";
+
+// 玩家信息
+message Player {
+  int64 uid = 1;                // 玩家ID
+  string nickname = 2;          // 昵称
+  string avatar = 3;            // 头像
+  int32 gender = 4;             // 性别
+  int32 seat_id = 5;            // 座位ID
+  bool is_ready = 6;            // 已准备?
+  map<string, Value> extra = 7; // 扩展字段
+}
+

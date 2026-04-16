@@ -1,0 +1,20 @@
+syntax = "proto3";
+package envelope;
+option go_package = "./envelope;envelope";
+
+// 任意类型值统一封装
+// oneof 表示只能选择其中一个类型赋值
+// 适用于扩展字段,如Player的extra字段
+message Value {
+  oneof value {
+    string str = 1;  // 字符串
+    int32 i32 = 2;   // 有符号32位整数
+    int64 i64 = 3;   // 有符号64位整数
+    uint32 u32 = 4;  // 无符号32位整数
+    uint64 u64 = 5;  // 无符号64位整数
+    bytes bytes = 6; // 字节数组
+    float f32 = 7;   // 32位浮点数
+    double f64 = 8;  // 64位浮点数
+    bool bool = 9;   // 布尔值
+  }
+}
