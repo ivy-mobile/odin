@@ -34,6 +34,22 @@ message RoomInfo {
   }
 }
 
+// 登录游戏请求
+message LoginGameRequest {
+
+}
+
+// 登录响应数据
+message LoginGameResponse {
+  Member member = 1;      // 玩家信息
+  RoomInfo room_info = 2; // 牌桌信息
+}
+
+// 心跳请求
+message HeartbeatRequest {
+
+}
+
 // 快速匹配 [请求]
 message QuickMatchRequest {
   int32 mode = 1;               // 模式 (各游戏自行解释)
