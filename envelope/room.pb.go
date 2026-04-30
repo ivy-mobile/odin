@@ -533,7 +533,7 @@ func (x *QuickMatchResponse) GetRoomInfo() *RoomInfo {
 // 创建房间 [请求]
 type RoomCreateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoomId        int64                  `protobuf:"varint,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Mode          int32                  `protobuf:"varint,1,opt,name=mode,proto3" json:"mode,omitempty"` // 模式 (各游戏自行解释)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -568,9 +568,9 @@ func (*RoomCreateRequest) Descriptor() ([]byte, []int) {
 	return file_room_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *RoomCreateRequest) GetRoomId() int64 {
+func (x *RoomCreateRequest) GetMode() int32 {
 	if x != nil {
-		return x.RoomId
+		return x.Mode
 	}
 	return 0
 }
@@ -1056,9 +1056,9 @@ const file_room_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12%\n" +
 	"\x05value\x18\x02 \x01(\v2\x0f.envelope.ValueR\x05value:\x028\x01\"E\n" +
 	"\x12QuickMatchResponse\x12/\n" +
-	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\",\n" +
-	"\x11RoomCreateRequest\x12\x17\n" +
-	"\aroom_id\x18\x01 \x01(\x03R\x06roomId\"E\n" +
+	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\"'\n" +
+	"\x11RoomCreateRequest\x12\x12\n" +
+	"\x04mode\x18\x01 \x01(\x05R\x04mode\"E\n" +
 	"\x12RoomCreateResponse\x12/\n" +
 	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\"F\n" +
 	"\x0fRoomJoinRequest\x12\x17\n" +

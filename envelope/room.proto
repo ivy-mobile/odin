@@ -63,7 +63,7 @@ message QuickMatchResponse {
 
 // 创建房间 [请求]
 message RoomCreateRequest {
-  int64 room_id = 1;
+  int32 mode = 1;         // 模式 (各游戏自行解释)
 }
 
 // 创建房间 [响应]
