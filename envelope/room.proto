@@ -75,6 +75,7 @@ message RoomCreateResponse {
 message RoomJoinRequest {
   int64 room_id = 1;     // 房间ID
   string password = 2;   // 房间密码
+  bool fromApp = 3;     // 是否从App端进入
 }
 
 // 加入房间 [响应]

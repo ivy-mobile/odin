@@ -625,6 +625,7 @@ type RoomJoinRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomId        int64                  `protobuf:"varint,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"` // 房间ID
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`            // 房间密码
+	FromApp       bool                   `protobuf:"varint,3,opt,name=fromApp,proto3" json:"fromApp,omitempty"`             // 是否从App端进入
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -671,6 +672,13 @@ func (x *RoomJoinRequest) GetPassword() string {
 		return x.Password
 	}
 	return ""
+}
+
+func (x *RoomJoinRequest) GetFromApp() bool {
+	if x != nil {
+		return x.FromApp
+	}
+	return false
 }
 
 // 加入房间 [响应]
@@ -1060,10 +1068,11 @@ const file_room_proto_rawDesc = "" +
 	"\x11RoomCreateRequest\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\x05R\x04mode\"E\n" +
 	"\x12RoomCreateResponse\x12/\n" +
-	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\"F\n" +
+	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\"`\n" +
 	"\x0fRoomJoinRequest\x12\x17\n" +
 	"\aroom_id\x18\x01 \x01(\x03R\x06roomId\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"C\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x18\n" +
+	"\afromApp\x18\x03 \x01(\bR\afromApp\"C\n" +
 	"\x10RoomJoinResponse\x12/\n" +
 	"\troom_info\x18\x01 \x01(\v2\x12.envelope.RoomInfoR\broomInfo\"\xa0\x01\n" +
 	"\x10RoomReadyRequest\x12\x17\n" +
