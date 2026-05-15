@@ -1,0 +1,72 @@
+# 系统配置示例
+# 支持环境变量占位符: ${VAR} 或 ${VAR:-default}
+
+application:
+  id: ${GAME_ID:105}
+  name: ${SERVER_NAME:-sword-ball}
+  env: ${ENV:-dev}
+  ws_path: /game
+  port: ${PORT:-8088}
+  pprof_port: ${PPROF_PORT:-6060}
+
+config_center:
+  ip_addr: ${NACOS_IP:-127.0.0.1}
+  port: ${NACOS_PORT:-8848}
+  path: /nacos
+  data_id: sword-ball
+  group: DEFAULT_GROUP
+  namespace: ${NACOS_NAMESPACE:-dev}
+  request_timeout: 5000
+  log_dir: /tmp/nacos/log
+  cache_dir: /tmp/nacos/cache
+  log_level: info
+
+registry:
+  ip_addr: ${NACOS_IP:-127.0.0.1}
+  port: ${NACOS_PORT:-8848}
+  path: /nacos
+  data_id: sword-ball
+  group: DEFAULT_GROUP
+  namespace: ${NACOS_NAMESPACE:-dev}
+  request_timeout: 5000
+  log_dir: /tmp/nacos/log
+  cache_dir: /tmp/nacos/cache
+  log_level: info
+
+log:
+  level: ${LOG_LEVEL:-debug}
+  level_field_name: level
+  time_field_name: time
+  message_field_name: message
+  time_format: "2006-01-02T15:04:05Z07:00"
+  mode: console
+  file:
+    filename: ./logs/app.log
+    max_size: 10
+    max_backups: 10
+    max_age: 10
+    compress: false
+    local_time: false
+
+redis:
+  addr: ${REDIS_ADDR:-127.0.0.1:6379}
+  client_name: sword-ball
+  username: ""
+  password: ${REDIS_PASSWORD:-admin123}
+  db: 0
+
+mq:
+  endpoint: ${MQ_ENDPOINT:-127.0.0.1:9876}
+  namespace: dev
+  group: sword-ball-consumer
+  access_key: ""
+  secret_key: ""
+  security_token: ""
+
+micros:
+  game_center:
+    filters: logging
+  user:
+    filters: logging
+  room:
+    filters: logging
