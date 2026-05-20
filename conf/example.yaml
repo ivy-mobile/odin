@@ -2,11 +2,11 @@
 # 支持环境变量占位符: ${VAR} 或 ${VAR:-default}
 
 application:
-  id: ${GAME_ID:105}
+  id: ${GAME_ID:-105}
   name: ${SERVER_NAME:-sword-ball}
   env: ${ENV:-dev}
   ws_path: /game
-  port: ${PORT:-8088}
+  ws_port: ${PORT:-8088}
   pprof_port: ${PPROF_PORT:-6060}
 
 config_center:

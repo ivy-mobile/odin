@@ -114,7 +114,7 @@ func TestLoadSystemConfigWithEnvSubst(t *testing.T) {
 application:
   id: ${TEST_GAME_ID}
   name: ${TEST_NAME:-sword-ball-default}
-  port: ${TEST_PORT}
+  ws_port: ${TEST_PORT}
   pprof_port: ${TEST_PPROF_PORT:-6060}
 `)
 
@@ -122,7 +122,7 @@ application:
 	assert.NoError(t, err)
 	assert.Equal(t, 200, Application().ID)
 	assert.Equal(t, "sword-ball-default", Application().Name)
-	assert.Equal(t, "9090", Application().Port)
+	assert.Equal(t, "9090", Application().WsPort)
 	assert.Equal(t, "6060", Application().PprofPort)
 }
 
@@ -135,7 +135,7 @@ func TestLoadSystemConfigJSONWithEnvSubst(t *testing.T) {
   "application": {
     "id": 300,
     "name": "${TEST_NAME}",
-    "port": "${TEST_PORT}",
+    "ws_port": "${TEST_PORT}",
     "pprof_port": "${TEST_PPROF_PORT:-6060}"
   }
 }`)
@@ -144,7 +144,7 @@ func TestLoadSystemConfigJSONWithEnvSubst(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 300, Application().ID)
 	assert.Equal(t, "json-env", Application().Name)
-	assert.Equal(t, "7070", Application().Port)
+	assert.Equal(t, "7070", Application().WsPort)
 	assert.Equal(t, "6060", Application().PprofPort)
 }
 
@@ -157,7 +157,7 @@ func TestLoadSystemConfigTOMLWithEnvSubst(t *testing.T) {
 [application]
 id = 400
 name = "${TEST_NAME}"
-port = "${TEST_PORT}"
+ws_port = "${TEST_PORT}"
 pprof_port = "${TEST_PPROF_PORT:-6060}"
 `)
 
@@ -165,7 +165,7 @@ pprof_port = "${TEST_PPROF_PORT:-6060}"
 	assert.NoError(t, err)
 	assert.Equal(t, 400, Application().ID)
 	assert.Equal(t, "toml-env", Application().Name)
-	assert.Equal(t, "5050", Application().Port)
+	assert.Equal(t, "5050", Application().WsPort)
 	assert.Equal(t, "6060", Application().PprofPort)
 }
 

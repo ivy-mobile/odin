@@ -9,15 +9,14 @@ import (
 	"strings"
 
 	"github.com/a8m/envsubst"
-	"github.com/nacos-group/nacos-sdk-go/v2/clients"
-	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
-	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
-	"github.com/nacos-group/nacos-sdk-go/v2/vo"
-
 	"github.com/ivy-mobile/odin/encoding/json"
 	"github.com/ivy-mobile/odin/encoding/toml"
 	"github.com/ivy-mobile/odin/encoding/yaml"
 	"github.com/ivy-mobile/odin/xutil/xconf"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 )
 
 var (
@@ -38,7 +37,7 @@ type Option func(*options)
 // Load 加载统一配置.
 //
 // 参数:
-//   - filename: 服务必备的系统配置文件路径, 如 "Config/Config.yaml", 不可为空.
+//   - filename: 服务必备的系统配置文件路径, 如 "config/application.yaml", 不可为空.
 //   - opts: 可选加载项. 需要加载业务配置时传入 WithBusiness.
 //
 // 加载规则:
@@ -52,8 +51,8 @@ type Option func(*options)
 //
 //	var business BusinessConfig
 //	if err := conf.Load(
-//		"Config/Config.yaml",
-//		conf.WithBusiness("Config/business.yaml", &business, true),
+//		"config/config.yaml",
+//		conf.WithBusiness("config/business.yaml", &business, true),
 //	); err != nil {
 //		panic(err)
 //	}
@@ -80,6 +79,7 @@ func Load(filename string, opts ...Option) (func(), error) {
 	if err := unmarshalConfig(filename, expanded, &cfg); err != nil {
 		return func() {}, fmt.Errorf("parse system Config %q: %w", filename, err)
 	}
+
 	if ops.target == nil {
 		return func() {}, nil
 	}

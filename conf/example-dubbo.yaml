@@ -1,0 +1,38 @@
+# Dubbo RPC 配置示例
+# 该配置文件用于配置 Dubbo 微服务相关的注册中心、协议和提供者
+# 支持环境变量占位符: ${VAR} 或 ${VAR:-default}
+
+dubbo:
+  application:
+    name: ${APP_NAME:-sword-ball-rpc}
+#    group: party-pop-games
+    organization: ${ORGANIZATION:-ivy}
+    owner: ${OWNER:-ivy}
+#    version: 0.0.1
+#    environment: dev
+  registries: # 注册中心
+    Nacos:
+      protocol: nacos
+      address: ${NACOS_ADDR:-10.80.1.67:18848/nacos}
+      namespace: ${NACOS_NAMESPACE:-dev}
+      group: DEFAULT_GROUP
+      registry-type: all # 双注册 interface & service
+  protocols:
+    triple:
+      name: tri
+      port: ${RPC_PORT:-21001} # 固定
+  provider:
+    services:
+      SwordBallService:
+        interface: ${SERVICE_INTERFACE:-cn.mobile.ivy.proto.game.SwordBallService}
+  logger:
+    driver: zap
+    level: ${LOG_LEVEL:-info}
+    format: json
+    appender: file
+    file:
+      name: ./logs/rpc.log
+      max-size: 100
+      max-backups: 5
+      max-age: 3
+      compress: true

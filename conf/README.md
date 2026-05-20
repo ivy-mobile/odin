@@ -5,6 +5,7 @@
 ## 特性
 
 - 系统配置只读，结构统一（Application、Redis、Log 等）
+- Dubbo RPC 配置独立拆分为单独的系统配置文件（`config/dubbo.yaml`）
 - 业务配置支持本地文件或 Nacos（Nacos 优先，本地兜底）
 - 支持 YAML / JSON / TOML 三种格式，按文件扩展名自动识别
 - 系统配置支持环境变量占位符，可设置默认值
@@ -40,15 +41,23 @@ defer closeFn()
 ## 加载规则
 
 ```
-系统配置（本地文件）       业务配置
-┌─────────────┐        ┌──────────────────────────┐
-│ config.yaml │        │ ConfigCenter 有效？       │
-│             │        │   ├─ 是 → 从 Nacos 获取   │
-│  - 只读     │        │   └─ 否 → 从本地文件获取  │
-│  - 支持环境变量        └──────────────────────────┘
-│  - 必填     │
-└─────────────┘
+系统配置（本地文件）              业务配置
+┌─────────────────────┐        ┌──────────────────────────┐
+│ config/application  │        │ ConfigCenter 有效？       │
+│ .yaml               │        │   ├─ 是 → 从 Nacos 获取   │
+│                     │        │   └─ 否 → 从本地文件获取  │
+│ config/dubbo.yaml   │        └──────────────────────────┘
+│  (Dubbo RPC 配置)   │
+│                     │
+│  - 只读             │
+│  - 支持环境变量     │
+│  - 必填             │
+└─────────────────────┘
 ```
+
+> **说明：** Dubbo RPC 配置已从主系统配置中独立出来，单独存放在 `config/dubbo.yaml`。
+> 该文件仍属于系统配置范畴，支持环境变量占位符，但不再通过 `conf.Load()` 加载，
+> 而是由 Dubbo 框架直接读取。
 
 ## 环境变量占位符
 
@@ -188,6 +197,75 @@ micros:            # 微服务
     filters: logging
 ```
 
+## Dubbo RPC 配置
+
+Dubbo RPC 配置已从主系统配置（`conf.Config`）中独立出来，作为单独的系统配置文件管理。
+
+### 文件位置
+
+- 默认路径：`config/dubbo.yaml`
+- 示例文件：[example-dubbo.yaml](example-dubbo.yaml)
+
+### 配置结构
+
+```yaml
+dubbo:
+  application:           # 应用信息
+    name: sword-ball-rpc
+    organization: ivy
+    owner: ivy
+  registries:            # 注册中心
+    Nacos:
+      protocol: nacos
+      address: 10.80.1.67:18848/nacos
+      namespace: dev
+      group: DEFAULT_GROUP
+      registry-type: all
+  protocols:             # 协议配置
+    triple:
+      name: tri
+      port: 21001
+  provider:              # 服务提供者
+    services:
+      SwordBallService:
+        interface: cn.mobile.ivy.proto.game.SwordBallService
+  logger:                # 日志配置
+    driver: zap
+    level: info
+    format: json
+    appender: file
+    file:
+      name: ./logs/rpc.log
+      max-size: 100
+      max-backups: 5
+      max-age: 3
+      compress: true
+```
+
+### 环境变量占位符
+
+Dubbo 配置文件同样支持环境变量占位符：
+
+```yaml
+dubbo:
+  application:
+    name: ${APP_NAME:-sword-ball-rpc}
+  registries:
+    Nacos:
+      address: ${NACOS_ADDR:-10.80.1.67:18848/nacos}
+      namespace: ${NACOS_NAMESPACE:-dev}
+  protocols:
+    triple:
+      port: ${RPC_PORT:-21001}
+```
+
+### 与主系统配置的关系
+
+| 配置项 | 文件 | 加载方式 |
+|--------|------|----------|
+| Application、Redis、Log、MQ 等 | `config/application.yaml` | `conf.Load()` |
+| Dubbo RPC | `config/dubbo.yaml` | Dubbo 框架直接读取 |
+
 ## API
 
 ### 加载配置
@@ -257,6 +335,16 @@ func main() {
 
 ## 示例文件
 
-- [example.yaml](example.yaml)
-- [example.json](example.json)
-- [example.toml](example.toml)
+### 主系统配置（通过 `conf.Load()` 加载）
+
+| 文件 | 说明 |
+|------|------|
+| [example.yaml](example.yaml) | YAML 格式示例 |
+| [example.json](example.json) | JSON 格式示例 |
+| [example.toml](example.toml) | TOML 格式示例 |
+
+### Dubbo RPC 配置（独立系统配置）
+
+| 文件 | 说明 |
+|------|------|
+| [example-dubbo.yaml](example-dubbo.yaml) | Dubbo RPC 配置示例，支持环境变量占位符 |
