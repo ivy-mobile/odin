@@ -144,6 +144,8 @@ func newOutput(ops *options) io.Writer {
 			LocalTime:  ops.fileOpts.localTime,
 			Compress:   ops.fileOpts.compress,
 		}
+	case ModeJSON:
+		return os.Stdout
 	}
 	return os.Stdout
 }

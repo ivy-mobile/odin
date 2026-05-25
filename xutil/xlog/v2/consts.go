@@ -12,6 +12,7 @@ const (
 const (
 	ModeConsole = "console"
 	ModeFile    = "file"
+	ModeJSON    = "json"
 )
 
 const (

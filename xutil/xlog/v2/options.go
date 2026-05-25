@@ -55,7 +55,7 @@ func WithLevel(level string) Option {
 // WithMode 指定输出模式, 默认console, 可选: console, file
 func WithMode(mode string) Option {
 	return func(o *options) {
-		if mode == ModeConsole || mode == ModeFile {
+		if mode == ModeConsole || mode == ModeFile || mode == ModeJSON {
 			o.mode = mode
 		}
 	}
