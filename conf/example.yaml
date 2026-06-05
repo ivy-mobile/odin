@@ -59,6 +59,7 @@ mq:
   endpoint: ${MQ_ENDPOINT:-127.0.0.1:9876}
   namespace: dev
   group: sword-ball-consumer
+  node_group: sword-ball-node-consumer
   access_key: ""
   secret_key: ""
   security_token: ""
