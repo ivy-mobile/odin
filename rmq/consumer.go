@@ -9,8 +9,18 @@ import (
 	"github.com/apache/rocketmq-clients/golang/v5"
 	"github.com/apache/rocketmq-clients/golang/v5/credentials"
 	"github.com/ivy-mobile/odin/xutil/xgo"
-	"github.com/ivy-mobile/odin/xutil/xlog"
 )
+
+// ConsumerOption 消费者选项
+type ConsumerOption func(*Consumer)
+
+// WithWatchErrorHandler 设置 watch 循环中的错误处理回调
+// 当 Receive 或 callback 返回 error 时, 会调用此 handler
+func WithWatchErrorHandler(handler func(err error)) ConsumerOption {
+	return func(c *Consumer) {
+		c.watchErrorHandler = handler
+	}
+}
 
 type Consumer struct {
 	ctx               context.Context
@@ -21,6 +31,7 @@ type Consumer struct {
 	c                 golang.SimpleConsumer
 	maxMessageNum     int32
 	invisibleDuration time.Duration
+	watchErrorHandler func(err error)
 }
 
 // NewConsumer 消费者
@@ -31,6 +42,19 @@ func NewConsumer(
 	group string,
 	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
+	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
+
+	return NewConsumerWithOption(endpoint, namespace, group, awaitDuration, credentials, nil, opts...)
+}
+
+// NewConsumerWithOption 创建消费者, 支持 odin 自定义选项
+func NewConsumerWithOption(
+	endpoint,
+	namespace,
+	group string,
+	awaitDuration time.Duration,
+	credentials *credentials.SessionCredentials,
+	consumerOpts []ConsumerOption,
 	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
 
 	opts = append(opts, golang.WithAwaitDuration(awaitDuration))
@@ -50,13 +74,17 @@ func NewConsumer(
 		return nil, fmt.Errorf("start consumer error: %v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Consumer{
+	c := &Consumer{
 		ctx:               ctx,
 		cancel:            cancel,
 		c:                 sc,
 		maxMessageNum:     16,
 		invisibleDuration: time.Second * 20, // 至少10000
-	}, nil
+	}
+	for _, opt := range consumerOpts {
+		opt(c)
+	}
+	return c, nil
 }
 
 // Subscribe 订阅主题 - 所有消息
@@ -148,6 +176,9 @@ func (sc *Consumer) watch() {
 			default:
 				msgs, err := sc.c.Receive(sc.ctx, sc.maxMessageNum, sc.invisibleDuration)
 				if err != nil {
+					if sc.watchErrorHandler != nil {
+						sc.watchErrorHandler(err)
+					}
 					continue
 				}
 				for _, msg := range msgs {
@@ -156,10 +187,15 @@ func (sc *Consumer) watch() {
 						continue
 					}
 					if err = cbFunc.(func(msg *golang.MessageView) error)(msg); err != nil {
+						if sc.watchErrorHandler != nil {
+							sc.watchErrorHandler(err)
+						}
 						continue
 					}
 					if err = sc.c.Ack(sc.ctx, msg); err != nil {
-						xlog.Error().Msgf("simple consumer ack error: %v, msg: %v", err, msg)
+						if sc.watchErrorHandler != nil {
+							sc.watchErrorHandler(err)
+						}
 						continue
 					}
 				}
