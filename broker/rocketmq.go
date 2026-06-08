@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/apache/rocketmq-clients/golang/v5"
+	"github.com/apache/rocketmq-clients/golang/v5/credentials"
+	"github.com/ivy-mobile/odin/conf"
 	"github.com/ivy-mobile/odin/encoding/json"
 	"github.com/ivy-mobile/odin/rmq"
 )
@@ -12,22 +14,58 @@ import (
 type RMQBroker struct {
 	topic string
 	rmqp  *rmq.Producer
-	rmqc  *rmq.Consumer
+	rmqc  *rmq.PushConsumer
 }
 
-func NewRMQBroker(topic string, producer *rmq.Producer, consumer *rmq.Consumer) *RMQBroker {
+func NewRMQBroker(topic, gameName, nodeId string, cfg conf.RocketMQConfig, msgHandler func(string, string, string, []byte)) (*RMQBroker, error) {
+	// producer
+	p, err := rmq.NewProducer(cfg.Endpoint, cfg.Namespace, cfg.Group, &credentials.SessionCredentials{
+		AccessKey:     cfg.AccessKey,
+		AccessSecret:  cfg.SecretKey,
+		SecurityToken: cfg.SecurityToken,
+	}, golang.WithTopics(topic))
+	if err != nil {
+		return nil, fmt.Errorf("broker new producer err: %v", err)
+	}
+	// consumer
+	c, err := rmq.NewPushConsumerWithOption(cfg.Endpoint, cfg.Namespace, cfg.NodeGroup, time.Second*5, &credentials.SessionCredentials{
+		AccessKey:     cfg.AccessKey,
+		AccessSecret:  cfg.SecretKey,
+		SecurityToken: cfg.SecurityToken,
+	},
+		golang.WithPushSubscriptionExpressions(map[string]*golang.FilterExpression{
+			topic: golang.NewFilterExpression(gameName), // 按 gameName tag 过滤
+		}),
+		golang.WithPushMessageListener(&golang.FuncMessageListener{
+			Consume: func(mv *golang.MessageView) golang.ConsumerResult {
+				tag := mv.GetTag()
+				node := mv.GetProperties()["node"]
+				//fmt.Println("|||| ", *tag, node)
+				//if *tag == gameName && nodeId == node {
+				msgHandler(*tag, node, mv.GetMessageId(), mv.GetBody())
+				//}
+				return golang.SUCCESS
+			},
+		}),
+		golang.WithPushConsumptionThreadCount(20),
+		golang.WithPushMaxCacheMessageCount(1024),
+	)
+
+	if err != nil {
+		_ = p.Close()
+		return nil, fmt.Errorf("broker new consumer err: %v", err)
+	}
+	//if err := c.SubscribeByTag(topic, gameName); err != nil {
+	//	return nil, err
+	//}
 	return &RMQBroker{
 		topic: topic,
-		rmqp:  producer,
-		rmqc:  consumer,
-	}
+		rmqp:  p,
+		rmqc:  c,
+	}, nil
 }
 
 var _ Broker = (*RMQBroker)(nil)
-
-func getNode(gameName, node string) string {
-	return gameName + "." + node
-}
 
 func (r *RMQBroker) SendMessage(uid int64, gameName, node string, payload []byte) (string, error) {
 	m := message{
@@ -43,23 +81,13 @@ func (r *RMQBroker) SendMessage(uid int64, gameName, node string, payload []byte
 		Topic: r.topic,
 		Body:  body,
 	}
-	msg.AddProperty("node", getNode(gameName, node))
+	msg.SetTag(gameName)
+	msg.AddProperty("node", node)
 	srs, err := r.rmqp.Send(msg)
 	if err != nil {
 		return "", fmt.Errorf("SendMessage send fail: %v", err)
 	}
 	return srs[0].MessageID, nil
-}
-
-func (r *RMQBroker) ReceiveMessage(gameName, node string, fn func(uid int64, msgId string, timestamp int64, data []byte)) error {
-	return r.rmqc.SubscribeBySQL92(r.topic, fmt.Sprintf("node='%s'", getNode(gameName, node)), func(msg *golang.MessageView) error {
-		var m message
-		if err := json.Unmarshal(msg.GetBody(), &m); err != nil {
-			return fmt.Errorf("ReceiveMessage unmarshal fail: %v", err)
-		}
-		fn(m.Uid, msg.GetMessageId(), m.Timestamp, m.Payload)
-		return nil
-	})
 }
 
 func (r *RMQBroker) Close() error {

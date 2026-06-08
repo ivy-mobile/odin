@@ -12,17 +12,17 @@ import (
 )
 
 // ConsumerOption 消费者选项
-type ConsumerOption func(*Consumer)
+type ConsumerOption func(*SimpleConsumer)
 
 // WithWatchErrorHandler 设置 watch 循环中的错误处理回调
 // 当 Receive 或 callback 返回 error 时, 会调用此 handler
 func WithWatchErrorHandler(handler func(err error)) ConsumerOption {
-	return func(c *Consumer) {
+	return func(c *SimpleConsumer) {
 		c.watchErrorHandler = handler
 	}
 }
 
-type Consumer struct {
+type SimpleConsumer struct {
 	ctx               context.Context
 	cancel            context.CancelFunc
 	wg                sync.WaitGroup
@@ -42,7 +42,7 @@ func NewConsumer(
 	group string,
 	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
-	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
+	opts ...golang.SimpleConsumerOption) (*SimpleConsumer, error) {
 
 	return NewConsumerWithOption(endpoint, namespace, group, awaitDuration, credentials, nil, opts...)
 }
@@ -55,9 +55,9 @@ func NewConsumerWithOption(
 	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
 	consumerOpts []ConsumerOption,
-	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
+	opts ...golang.SimpleConsumerOption) (*SimpleConsumer, error) {
 
-	opts = append(opts, golang.WithAwaitDuration(awaitDuration))
+	opts = append(opts, golang.WithSimpleAwaitDuration(awaitDuration))
 	sc, err := golang.NewSimpleConsumer(
 		&golang.Config{
 			Endpoint:      endpoint,
@@ -74,12 +74,12 @@ func NewConsumerWithOption(
 		return nil, fmt.Errorf("start consumer error: %v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &Consumer{
+	c := &SimpleConsumer{
 		ctx:               ctx,
 		cancel:            cancel,
 		c:                 sc,
 		maxMessageNum:     16,
-		invisibleDuration: time.Second * 20, // 至少10000
+		invisibleDuration: time.Second * 10, // 至少10000
 	}
 	for _, opt := range consumerOpts {
 		opt(c)
@@ -89,7 +89,7 @@ func NewConsumerWithOption(
 
 // Subscribe 订阅主题 - 所有消息
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
-func (sc *Consumer) Subscribe(topic string, callback func(msg *golang.MessageView) error) error {
+func (sc *SimpleConsumer) Subscribe(topic string, callback func(msg *golang.MessageView) error) error {
 
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
@@ -107,7 +107,7 @@ func (sc *Consumer) Subscribe(topic string, callback func(msg *golang.MessageVie
 
 // SubscribeByTag 订阅主题,tag过滤
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
-func (sc *Consumer) SubscribeByTag(topic, tag string, callback func(msg *golang.MessageView) error) error {
+func (sc *SimpleConsumer) SubscribeByTag(topic, tag string, callback func(msg *golang.MessageView) error) error {
 
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
@@ -128,7 +128,7 @@ func (sc *Consumer) SubscribeByTag(topic, tag string, callback func(msg *golang.
 
 // SubscribeBySQL92 订阅主题,sql92 过滤
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
-func (sc *Consumer) SubscribeBySQL92(topic, sql92 string, callback func(msg *golang.MessageView) error) error {
+func (sc *SimpleConsumer) SubscribeBySQL92(topic, sql92 string, callback func(msg *golang.MessageView) error) error {
 
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
@@ -148,7 +148,7 @@ func (sc *Consumer) SubscribeBySQL92(topic, sql92 string, callback func(msg *gol
 }
 
 // Unsubscribe 取消订阅主题
-func (sc *Consumer) Unsubscribe(topic string) error {
+func (sc *SimpleConsumer) Unsubscribe(topic string) error {
 	if err := sc.c.Unsubscribe(topic); err != nil {
 		return fmt.Errorf("unsubscribe error: %v", err)
 	}
@@ -157,14 +157,14 @@ func (sc *Consumer) Unsubscribe(topic string) error {
 }
 
 // Close 关闭消费者
-func (sc *Consumer) Close() error {
+func (sc *SimpleConsumer) Close() error {
 	sc.cancel()
 	sc.wg.Wait()
 	return sc.c.GracefulStop()
 }
 
 // 监听消息
-func (sc *Consumer) watch() {
+func (sc *SimpleConsumer) watch() {
 	sc.wg.Add(1)
 
 	xgo.Go(func() {
