@@ -25,6 +25,10 @@ func NewRMQBroker(topic string, producer *rmq.Producer, consumer *rmq.Consumer) 
 
 var _ Broker = (*RMQBroker)(nil)
 
+func getNode(gameName, node string) string {
+	return gameName + "." + node
+}
+
 func (r *RMQBroker) SendMessage(uid int64, gameName, node string, payload []byte) (string, error) {
 	m := message{
 		Uid:       uid,
@@ -39,7 +43,7 @@ func (r *RMQBroker) SendMessage(uid int64, gameName, node string, payload []byte
 		Topic: r.topic,
 		Body:  body,
 	}
-	msg.AddProperty("node", node)
+	msg.AddProperty("node", getNode(gameName, node))
 	srs, err := r.rmqp.Send(msg)
 	if err != nil {
 		return "", fmt.Errorf("SendMessage send fail: %v", err)
@@ -48,7 +52,7 @@ func (r *RMQBroker) SendMessage(uid int64, gameName, node string, payload []byte
 }
 
 func (r *RMQBroker) ReceiveMessage(gameName, node string, fn func(uid int64, msgId string, timestamp int64, data []byte)) error {
-	return r.rmqc.SubscribeBySQL92(r.topic, fmt.Sprintf("node='%s'", node), func(msg *golang.MessageView) error {
+	return r.rmqc.SubscribeBySQL92(r.topic, fmt.Sprintf("node='%s'", getNode(gameName, node)), func(msg *golang.MessageView) error {
 		var m message
 		if err := json.Unmarshal(msg.GetBody(), &m); err != nil {
 			return fmt.Errorf("ReceiveMessage unmarshal fail: %v", err)
