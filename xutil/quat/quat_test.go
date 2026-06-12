@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"sword-ball/pkg/vec"
+	"github.com/ivy-mobile/odin/xutil/vec"
 )
 
 func almost(a, b float64) bool {
@@ -129,7 +129,6 @@ func TestSlerp(t *testing.T) {
 }
 
 func TestSlerp1(t *testing.T) {
-
 	v1 := Quat{1, 2, 3, 4}
 	v2 := Quat{5, 6, 7, 8}
 
@@ -138,7 +137,6 @@ func TestSlerp1(t *testing.T) {
 }
 
 func BenchmarkLen2(b *testing.B) {
-
 	v1 := Quat{1, 2, 3, 4}
 
 	b.Run("Len2", func(b *testing.B) {
@@ -154,5 +152,4 @@ func BenchmarkLen2(b *testing.B) {
 			_ = v1.Len()
 		}
 	})
-
 }

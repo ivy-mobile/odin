@@ -20,9 +20,9 @@ func TestString(t *testing.T) {
 	t.Log(xconv.String(1))
 	t.Log(xconv.String(int8(1)))
 
-	var a = int64(1)
-	var b = 1.1
-	var c = &b
+	a := int64(1)
+	b := 1.1
+	c := &b
 
 	t.Log(xconv.String(&a))
 	t.Log(*c)

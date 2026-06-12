@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	Nacos struct {
+		//nolint:revive // 测试配置字段名保持历史兼容。
 		IpAddr string `yaml:"ip_addr" json:"ip_addr"`
 		Port   int    `yaml:"port" json:"port"`
 	} `yaml:"nacos" json:"nacos"`

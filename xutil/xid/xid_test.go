@@ -10,7 +10,6 @@ import (
 )
 
 func TestSonyflake(t *testing.T) {
-
 	total := 1000
 	g, ctx := errgroup.WithContext(context.Background())
 
@@ -54,7 +53,6 @@ func BenchmarkSonyflake(b *testing.B) {
 }
 
 func TestSnowflake(t *testing.T) {
-
 	total := 1000
 	g, ctx := errgroup.WithContext(context.Background())
 
@@ -91,7 +89,6 @@ func BenchmarkSnowflake(b *testing.B) {
 }
 
 func TestUlid(t *testing.T) {
-
 	total := 1000
 	g, ctx := errgroup.WithContext(context.Background())
 
@@ -122,7 +119,6 @@ func TestUlid(t *testing.T) {
 }
 
 func BenchmarkUlid(b *testing.B) {
-
 	b.ReportAllocs()
 	b.ResetTimer()
 

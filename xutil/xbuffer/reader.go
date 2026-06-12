@@ -377,8 +377,8 @@ func (r *Reader) ReadBytes(n int) ([]byte, error) {
 }
 
 // ReadString 读取string值
-func (r *Reader) ReadString(len int) (string, error) {
-	buf, err := r.slice(len)
+func (r *Reader) ReadString(size int) (string, error) {
+	buf, err := r.slice(size)
 	if err != nil {
 		return "", err
 	}

@@ -10,11 +10,11 @@ type Writer struct {
 	off int
 }
 
-func NewWriter(cap ...int) *Writer {
+func NewWriter(size ...int) *Writer {
 	w := &Writer{}
 
-	if len(cap) > 0 {
-		w.buf = make([]byte, cap[0])
+	if len(size) > 0 {
+		w.buf = make([]byte, size[0])
 	} else {
 		w.buf = make([]byte, 0)
 	}

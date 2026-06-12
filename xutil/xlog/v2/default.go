@@ -9,8 +9,6 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// 默认日志实现,基于zerolog,lumberjack实现轮转
-
 type defaultLog struct {
 	log zerolog.Logger
 }
@@ -18,7 +16,6 @@ type defaultLog struct {
 var _ Logger = (*defaultLog)(nil)
 
 func newDefaultLog(opts ...Option) *defaultLog {
-
 	ops := defaultOptions()
 	for _, opt := range opts {
 		opt(ops)

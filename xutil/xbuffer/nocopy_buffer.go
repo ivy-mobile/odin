@@ -92,8 +92,8 @@ func (b *NocopyBuffer) Mount(block any, whence ...Whence) {
 }
 
 // Malloc 分配一块内存给Writer
-func (b *NocopyBuffer) Malloc(cap int, whence ...Whence) *Writer {
-	writer := defaultWriterPool.Get(cap)
+func (b *NocopyBuffer) Malloc(size int, whence ...Whence) *Writer {
+	writer := defaultWriterPool.Get(size)
 
 	if len(whence) > 0 && whence[0] == Head {
 		b.addToHead(&NocopyNode{buf: writer, pool: defaultWriterPool})

@@ -291,27 +291,27 @@ func (a Vec3) Lerp(b Vec3, t float64) Vec3 {
 // ClampLen 把向量长度限制到不超过 max
 //
 // 几何意义：
-//   - 如果 |a| <= max，保持不变
-//   - 如果 |a| > max，保持方向不变并缩短到 max
+//   - 如果 |a| <= maxLen，保持不变
+//   - 如果 |a| > maxLen，保持方向不变并缩短到 maxLen
 //
 // 游戏/工程用途：
 //   - 限速（角色速度、抛射物速度）
 //   - 限制输入叠加后的总移动向量长度，避免斜向移动更快
 //
-// max <= 0 时返回零向量
-func (a Vec3) ClampLen(max float64) Vec3 {
-	if max <= 0 {
+// maxLen <= 0 时返回零向量
+func (a Vec3) ClampLen(maxLen float64) Vec3 {
+	if maxLen <= 0 {
 		return Vec3{}
 	}
 	l2 := a.Len2()
-	max2 := max * max
+	max2 := maxLen * maxLen
 	if l2 <= max2 {
 		return a
 	}
 	if l2 == 0 {
 		return Vec3{}
 	}
-	return a.Mul(max / math.Sqrt(l2))
+	return a.Mul(maxLen / math.Sqrt(l2))
 }
 
 // ProjectOn 返回 a 在 b 上的投影向量

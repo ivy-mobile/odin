@@ -8,6 +8,7 @@ import (
 
 	"github.com/apache/rocketmq-clients/golang/v5"
 	"github.com/apache/rocketmq-clients/golang/v5/credentials"
+
 	"github.com/ivy-mobile/odin/xutil/xgo"
 )
 
@@ -42,8 +43,8 @@ func NewConsumer(
 	group string,
 	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
-	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
-
+	opts ...golang.SimpleConsumerOption,
+) (*Consumer, error) {
 	return NewConsumerWithOption(endpoint, namespace, group, awaitDuration, credentials, nil, opts...)
 }
 
@@ -55,8 +56,8 @@ func NewConsumerWithOption(
 	awaitDuration time.Duration,
 	credentials *credentials.SessionCredentials,
 	consumerOpts []ConsumerOption,
-	opts ...golang.SimpleConsumerOption) (*Consumer, error) {
-
+	opts ...golang.SimpleConsumerOption,
+) (*Consumer, error) {
 	opts = append(opts, golang.WithAwaitDuration(awaitDuration))
 	sc, err := golang.NewSimpleConsumer(
 		&golang.Config{
@@ -90,7 +91,6 @@ func NewConsumerWithOption(
 // Subscribe 订阅主题 - 所有消息
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
 func (sc *Consumer) Subscribe(topic string, callback func(msg *golang.MessageView) error) error {
-
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
 	}
@@ -108,7 +108,6 @@ func (sc *Consumer) Subscribe(topic string, callback func(msg *golang.MessageVie
 // SubscribeByTag 订阅主题,tag过滤
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
 func (sc *Consumer) SubscribeByTag(topic, tag string, callback func(msg *golang.MessageView) error) error {
-
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
 	}
@@ -129,7 +128,6 @@ func (sc *Consumer) SubscribeByTag(topic, tag string, callback func(msg *golang.
 // SubscribeBySQL92 订阅主题,sql92 过滤
 // callback: 回调函数，当callback返回 error==nil 时, 会ack消息，error!= nil 时，不会ack消息
 func (sc *Consumer) SubscribeBySQL92(topic, sql92 string, callback func(msg *golang.MessageView) error) error {
-
 	if _, ok := sc.subs.LoadOrStore(topic, callback); ok {
 		return fmt.Errorf("topic %s has been subscribed", topic)
 	}

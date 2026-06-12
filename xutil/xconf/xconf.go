@@ -40,7 +40,6 @@ func LoadConfigFromFile(filename string, v any, listen bool) error {
 }
 
 func tagFromFilename(filename string) string {
-
 	ext := strings.ToLower(filepath.Ext(filename))
 	switch ext {
 	case ".yaml", ".yml":
@@ -65,7 +64,6 @@ func tagFromFilename(filename string) string {
 // v: The struct to unmarshal the configuration into.
 // error: Returns an error if the configuration file cannot be read or if unmarshaling fails.
 func load(vp *viper.Viper, filename string, v any) error {
-
 	vp.SetConfigFile(filename)
 	if err := vp.ReadInConfig(); err != nil {
 		return err

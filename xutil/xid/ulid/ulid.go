@@ -17,7 +17,6 @@ func init() {
 }
 
 func NextID() (string, error) {
-
 	mux.Lock()
 	defer mux.Unlock()
 

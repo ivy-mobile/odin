@@ -14,8 +14,7 @@ func init() {
 	logger = logv2.New()
 }
 
-func TestDebug(t *testing.T) {
-
+func TestDebug(_ *testing.T) {
 	logger.Debug().Int64("i64", 1).Msg("test1")
 	logger.Debug().Int("int", 1).Msg("test1")
 	logger.Debug().Uint64("u64", 1).Msg("test1")
@@ -37,8 +36,7 @@ func TestDebug(t *testing.T) {
 	logger.Debug().Any("err", errors.New("test error")).Msgf("test2")
 }
 
-func TestInfo(t *testing.T) {
-
+func TestInfo(_ *testing.T) {
 	logger.Info().Int64("i64", 1).Msg("test1")
 	logger.Info().Int("int", 1).Msg("test1")
 	logger.Info().Uint64("u64", 1).Msg("test1")
@@ -60,8 +58,7 @@ func TestInfo(t *testing.T) {
 	logger.Info().Err(errors.New("test error")).Msgf("test2")
 }
 
-func TestWarn(t *testing.T) {
-
+func TestWarn(_ *testing.T) {
 	logger.Warn().Int64("i64", 1).Msg("test1")
 	logger.Warn().Int("int", 1).Msg("test1")
 	logger.Warn().Uint64("u64", 1).Msg("test1")
@@ -83,8 +80,7 @@ func TestWarn(t *testing.T) {
 	logger.Warn().Any("err", errors.New("test error")).Msgf("test2")
 }
 
-func TestError(t *testing.T) {
-
+func TestError(_ *testing.T) {
 	logger.Error().Int64("i64", 1).Msg("test1")
 	logger.Error().Int("int", 1).Msg("test1")
 	logger.Error().Uint64("u64", 1).Msg("test1")
@@ -107,7 +103,6 @@ func TestError(t *testing.T) {
 }
 
 func BenchmarkLog(b *testing.B) {
-
 	log := logv2.New(
 		logv2.WithLevel("info"),
 		logv2.WithMode("console"),
@@ -121,7 +116,7 @@ func BenchmarkLog(b *testing.B) {
 	}
 }
 
-func TestOlog(t *testing.T) {
+func TestOlog(_ *testing.T) {
 	log := logv2.New(
 		logv2.WithLevel("info"),
 		logv2.WithMode("file"),

@@ -6,6 +6,7 @@ func Float32(data any) float32 {
 	return float32(Float64(data))
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Float32s(data any) (slice []float32) {
 	if data == nil {
 		return
@@ -192,7 +193,7 @@ func Float32s(data any) (slice []float32) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

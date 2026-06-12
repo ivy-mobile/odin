@@ -9,7 +9,7 @@ func Value(i any) (reflect.Kind, reflect.Value) {
 		rv = reflect.ValueOf(i)
 		rk = rv.Kind()
 	)
-	for rk == reflect.Ptr {
+	for rk == reflect.Pointer {
 		rv = rv.Elem()
 		rk = rv.Kind()
 	}

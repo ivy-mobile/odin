@@ -88,7 +88,7 @@ func Uint64(data any) uint64 {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -117,6 +117,7 @@ func Uint64(data any) uint64 {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Uint64s(data any) (slice []uint64) {
 	if data == nil {
 		return
@@ -306,7 +307,7 @@ func Uint64s(data any) (slice []uint64) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

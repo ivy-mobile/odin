@@ -100,7 +100,7 @@ func String(data any) string {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -130,6 +130,7 @@ func String(data any) string {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Strings(data any) (slice []string) {
 	if data == nil {
 		return
@@ -316,7 +317,7 @@ func Strings(data any) (slice []string) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

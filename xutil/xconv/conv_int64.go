@@ -91,9 +91,8 @@ func Int64(data any) int64 {
 		var i int64
 		if err := binary.Read(bytes.NewReader(buf), binary.BigEndian, &i); err == nil {
 			return i
-		} else {
-			return 0
 		}
+		return 0
 	case *[]byte:
 		return Int64(*v)
 	default:
@@ -102,7 +101,7 @@ func Int64(data any) int64 {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -131,6 +130,7 @@ func Int64(data any) int64 {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Int64s(data any) (slice []int64) {
 	if data == nil {
 		return
@@ -317,7 +317,7 @@ func Int64s(data any) (slice []int64) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -335,12 +335,12 @@ func Int64s(data any) (slice []int64) {
 	return
 }
 
-func Int64Pointer(any any) *int64 {
-	v := Int64(any)
+func Int64Pointer(data any) *int64 {
+	v := Int64(data)
 	return &v
 }
 
-func Int64sPointer(any any) *[]int64 {
-	v := Int64s(any)
+func Int64sPointer(data any) *[]int64 {
+	v := Int64s(data)
 	return &v
 }

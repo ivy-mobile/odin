@@ -47,12 +47,12 @@ type Packer interface {
 
 type defaultPacker struct {
 	opts             *options
-	once             sync.Once
 	heartbeat        []byte
 	readerSizePool   sync.Pool
 	readerBufferPool sync.Pool
 }
 
+//nolint:revive // 保持既有 API：调用方可能依赖具体返回类型的方法集。
 func NewPacker(opts ...Option) *defaultPacker {
 	o := defaultOptions()
 	for _, opt := range opts {
@@ -212,9 +212,9 @@ func (p *defaultPacker) PackMessage(message *Message) ([]byte, error) {
 	switch p.opts.routeBytes {
 	case 1:
 		err = binary.Write(buf, p.opts.byteOrder, int8(message.Route))
-	case 2:
+	case defaultRouteBytes:
 		err = binary.Write(buf, p.opts.byteOrder, int16(message.Route))
-	case 4:
+	case defaultSizeBytes:
 		err = binary.Write(buf, p.opts.byteOrder, message.Route)
 	}
 	if err != nil {
@@ -224,9 +224,9 @@ func (p *defaultPacker) PackMessage(message *Message) ([]byte, error) {
 	switch p.opts.seqBytes {
 	case 1:
 		err = binary.Write(buf, p.opts.byteOrder, int8(message.Seq))
-	case 2:
+	case defaultSeqBytes:
 		err = binary.Write(buf, p.opts.byteOrder, int16(message.Seq))
-	case 4:
+	case defaultSizeBytes:
 		err = binary.Write(buf, p.opts.byteOrder, message.Seq)
 	}
 	if err != nil {
@@ -269,18 +269,18 @@ func (p *defaultPacker) PackBuffer(message *Message) (xbuffer.Buffer, error) {
 	switch p.opts.routeBytes {
 	case 1:
 		writer.WriteInt8s(int8(message.Route))
-	case 2:
+	case defaultRouteBytes:
 		writer.WriteInt16s(p.opts.byteOrder, int16(message.Route))
-	case 4:
+	case defaultSizeBytes:
 		writer.WriteInt32s(p.opts.byteOrder, message.Route)
 	}
 
 	switch p.opts.seqBytes {
 	case 1:
 		writer.WriteInt8s(int8(message.Seq))
-	case 2:
+	case defaultSeqBytes:
 		writer.WriteInt16s(p.opts.byteOrder, int16(message.Seq))
-	case 4:
+	case defaultSizeBytes:
 		writer.WriteInt32s(p.opts.byteOrder, message.Seq)
 	}
 
@@ -327,23 +327,20 @@ func (p *defaultPacker) UnpackMessage(data []byte) (*Message, error) {
 		var route int8
 		if err = binary.Read(reader, p.opts.byteOrder, &route); err != nil {
 			return nil, err
-		} else {
-			message.Route = int32(route)
 		}
-	case 2:
+		message.Route = int32(route)
+	case defaultRouteBytes:
 		var route int16
 		if err = binary.Read(reader, p.opts.byteOrder, &route); err != nil {
 			return nil, err
-		} else {
-			message.Route = int32(route)
 		}
-	case 4:
+		message.Route = int32(route)
+	case defaultSizeBytes:
 		var route int32
 		if err = binary.Read(reader, p.opts.byteOrder, &route); err != nil {
 			return nil, err
-		} else {
-			message.Route = route
 		}
+		message.Route = route
 	}
 
 	switch p.opts.seqBytes {
@@ -351,23 +348,20 @@ func (p *defaultPacker) UnpackMessage(data []byte) (*Message, error) {
 		var seq int8
 		if err = binary.Read(reader, p.opts.byteOrder, &seq); err != nil {
 			return nil, err
-		} else {
-			message.Seq = int32(seq)
 		}
-	case 2:
+		message.Seq = int32(seq)
+	case defaultSeqBytes:
 		var seq int16
 		if err = binary.Read(reader, p.opts.byteOrder, &seq); err != nil {
 			return nil, err
-		} else {
-			message.Seq = int32(seq)
 		}
-	case 4:
+		message.Seq = int32(seq)
+	case defaultSizeBytes:
 		var seq int32
 		if err = binary.Read(reader, p.opts.byteOrder, &seq); err != nil {
 			return nil, err
-		} else {
-			message.Seq = seq
 		}
+		message.Seq = seq
 	}
 
 	message.Buffer = data[ln:]

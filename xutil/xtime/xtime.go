@@ -29,10 +29,10 @@ func NowUnixMicro() int64 {
 
 // Sub 计算时间差
 func Sub(t time.Time) time.Duration {
-	return time.Now().Sub(t)
+	return time.Since(t)
 }
 
-//IsSameDay 判断是否是同一天
+// IsSameDay 判断是否是同一天
 func IsSameDay(t1, t2 time.Time) bool {
-	return t1.Truncate(24*time.Hour) == t2.Truncate(24*time.Hour)
+	return t1.Truncate(24*time.Hour).UnixNano() == t2.Truncate(24*time.Hour).UnixNano()
 }

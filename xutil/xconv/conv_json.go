@@ -6,27 +6,28 @@ import (
 	"github.com/ivy-mobile/odin/encoding/json"
 )
 
+//nolint:revive // 保持既有导出 API 兼容。
 func Json(data any) string {
-	isJson := func(s string) bool {
+	isJSON := func(s string) bool {
 		l := len(s)
 		return l >= 2 && ((s[0] == '{' && s[l-1] == '}') || (s[0] == '[' && s[l-1] == ']'))
 	}
 
 	switch v := data.(type) {
 	case string:
-		if isJson(v) {
+		if isJSON(v) {
 			return v
 		}
 	case *string:
-		if isJson(*v) {
+		if isJSON(*v) {
 			return *v
 		}
 	case []byte:
-		if s := BytesToString(v); isJson(s) {
+		if s := BytesToString(v); isJSON(s) {
 			return s
 		}
 	case *[]byte:
-		if s := BytesToString(*v); isJson(s) {
+		if s := BytesToString(*v); isJSON(s) {
 			return s
 		}
 	default:
@@ -35,14 +36,14 @@ func Json(data any) string {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
 
 		switch kind {
 		case reflect.String:
-			if s := rv.String(); isJson(s) {
+			if s := rv.String(); isJSON(s) {
 				return s
 			}
 		case reflect.Map, reflect.Array, reflect.Slice, reflect.Struct:

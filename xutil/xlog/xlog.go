@@ -46,12 +46,12 @@ func Init(level, pathname string, interval time.Duration, serviceName, env, node
 		zerolog.SetGlobalLevel(zerolog.DebugLevel) // 默认debug级别
 	}
 
-	//zerolog.TimeFieldFormat = zerolog.TimeFormatUnix // 更快更小
-	//zerolog.TimeFieldFormat = "2006-01-02 15:04:05" // 秒级,不带时区
-	//zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z700" // 毫秒级,带时区
-	//zerolog.TimestampFieldName = "timestamp"
-	//zerolog.LevelFieldName = "Level"
-	//zerolog.MessageFieldName = "msg"
+	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix // 更快更小
+	// zerolog.TimeFieldFormat = "2006-01-02 15:04:05" // 秒级,不带时区
+	// zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000Z700" // 毫秒级,带时区
+	// zerolog.TimestampFieldName = "timestamp"
+	// zerolog.LevelFieldName = "Level"
+	// zerolog.MessageFieldName = "msg"
 
 	logger = &XLogger{
 		Logger:       zerolog.New(newOutput(pathname, node)).With().Logger(),
@@ -69,12 +69,11 @@ func Init(level, pathname string, interval time.Duration, serviceName, env, node
 // 获取输出 控制台/文件
 // 当pathname为空时,输出到控制台
 func newOutput(pathname, node string) io.Writer {
-
 	// 1. 默认标准输出
 	// 2. 文件夹设置不为空时,写入文件
 	if pathname != "" {
 		now := time.Now().Format("20060102_15:04:05")
-		var filename = fmt.Sprintf("%s.log", now)
+		filename := fmt.Sprintf("%s.log", now)
 		if node != "" {
 			filename = fmt.Sprintf("%s_%s.log", node, now)
 		}
@@ -88,9 +87,8 @@ func newOutput(pathname, node string) io.Writer {
 		file, err := os.Create(path.Join(pathname, filename))
 		if err == nil {
 			return file
-		} else {
-			fmt.Println("create file[", filename, "] error:", err.Error())
 		}
+		fmt.Println("create file[", filename, "] error:", err.Error())
 	}
 	return os.Stdout
 }
@@ -119,10 +117,6 @@ func Fatal() *zerolog.Event {
 // Panic Panic消息打印 (程序不会终止)
 func Panic() *zerolog.Event {
 	return newEvent(zerolog.PanicLevel)
-}
-
-func log() *zerolog.Event {
-	return newEvent(zerolog.NoLevel)
 }
 
 func newEvent(level zerolog.Level) *zerolog.Event {

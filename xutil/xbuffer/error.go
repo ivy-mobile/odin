@@ -2,6 +2,4 @@ package xbuffer
 
 import "errors"
 
-var (
-	ErrUnexpectedEOF = errors.New("unexpected EOF")
-)
+var ErrUnexpectedEOF = errors.New("unexpected EOF")

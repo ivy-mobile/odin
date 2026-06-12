@@ -9,13 +9,13 @@ import (
 
 // WaitSysSignal 等待系统信号
 func WaitSysSignal(afterHandler ...func(s os.Signal)) {
-	sig := make(chan os.Signal)
+	sig := make(chan os.Signal, 1)
 
 	switch runtime.GOOS {
 	case `windows`:
-		signal.Notify(sig, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	default:
-		signal.Notify(sig, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGABRT, syscall.SIGKILL, syscall.SIGTERM)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGABRT, syscall.SIGTERM)
 	}
 	s := <-sig
 	signal.Stop(sig)

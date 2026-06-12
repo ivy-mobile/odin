@@ -4,9 +4,11 @@ import "fmt"
 
 // NacosConfig Naco配置
 type NacosConfig struct {
-	IpAddr         string `yaml:"ip_addr" json:"ip_addr" toml:"ip_addr"`
-	Port           uint64 `yaml:"port" json:"port" toml:"port"`
-	Path           string `yaml:"path" json:"path" toml:"path"`
+	//nolint:revive // 配置字段名保持历史兼容。
+	IpAddr string `yaml:"ip_addr" json:"ip_addr" toml:"ip_addr"`
+	Port   uint64 `yaml:"port" json:"port" toml:"port"`
+	Path   string `yaml:"path" json:"path" toml:"path"`
+	//nolint:revive // 配置字段名保持历史兼容。
 	DataId         string `yaml:"data_id" json:"data_id" toml:"data_id"`
 	Group          string `yaml:"group" json:"group" toml:"group"`
 	Namespace      string `yaml:"namespace" json:"namespace" toml:"namespace"`

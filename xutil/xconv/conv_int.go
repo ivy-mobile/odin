@@ -6,6 +6,7 @@ func Int(data any) int {
 	return int(Int64(data))
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Ints(data any) (slice []int) {
 	if data == nil {
 		return
@@ -192,7 +193,7 @@ func Ints(data any) (slice []int) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

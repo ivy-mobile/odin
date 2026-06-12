@@ -94,7 +94,7 @@ func Float64(data any) float64 {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -123,6 +123,7 @@ func Float64(data any) float64 {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Float64s(data any) (slice []float64) {
 	if data == nil {
 		return
@@ -309,7 +310,7 @@ func Float64s(data any) (slice []float64) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

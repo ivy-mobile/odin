@@ -54,5 +54,5 @@ func UUID() string {
 // UUIDX UUID 无横杠
 func UUIDX() string {
 	str := uuid.New().String()
-	return strings.Replace(str, "-", "", -1)
+	return strings.ReplaceAll(str, "-", "")
 }

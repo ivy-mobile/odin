@@ -22,7 +22,7 @@ type Buffer interface {
 	// Mount 挂载数据到Buffer上
 	Mount(block any, whence ...Whence)
 	// Malloc 分配一块内存给Writer
-	Malloc(cap int, whence ...Whence) *Writer
+	Malloc(size int, whence ...Whence) *Writer
 	// Range 迭代
 	Range(fn func(node *NocopyNode) bool)
 	// Release 释放

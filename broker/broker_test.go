@@ -10,11 +10,11 @@ import (
 
 	"github.com/apache/rocketmq-clients/golang/v5"
 	"github.com/apache/rocketmq-clients/golang/v5/credentials"
+
 	"github.com/ivy-mobile/odin/rmq"
 )
 
 func newBroker(Topic, Endpoint, Namespace, Group string) (*RMQBroker, error) {
-
 	// 生产者
 	rmqp, err := rmq.NewProducer(Endpoint, Namespace, Group, &credentials.SessionCredentials{})
 	if err != nil {
@@ -48,23 +48,23 @@ func TestRMQBroker(t *testing.T) {
 	tc2, _ := newBroker(Topic, Endpoint, Namespace, Group2)
 	tc3, _ := newBroker(Topic, Endpoint, Namespace, Group3)
 
-	if err := tc1.ReceiveMessage(GameName, Node1, func(uid int64, msgId string, timestamp int64, msg []byte) {
-		mp1.Store(msgId, struct{}{})
-		//t.Logf("time: %v, get message, msgId: %v, cost: %v", time.Now(), msgId, time.Since(time.UnixMilli(timestamp)))
+	if err := tc1.ReceiveMessage(GameName, Node1, func(_ int64, msgID string, _ int64, _ []byte) {
+		mp1.Store(msgID, struct{}{})
+		// t.Logf("time: %v, get message, msgId: %v, cost: %v", time.Now(), msgId, time.Since(time.UnixMilli(timestamp)))
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tc2.ReceiveMessage(GameName, Node2, func(uid int64, msgId string, timestamp int64, msg []byte) {
-		//mp1.Store(msgId, struct{}{})
-		t.Logf("[222] time: %v, get message, msgId: %v, cost: %v", time.Now(), msgId, time.Since(time.UnixMilli(timestamp)))
+	if err := tc2.ReceiveMessage(GameName, Node2, func(_ int64, msgID string, timestamp int64, _ []byte) {
+		// mp1.Store(msgId, struct{}{})
+		t.Logf("[222] time: %v, get message, msgId: %v, cost: %v", time.Now(), msgID, time.Since(time.UnixMilli(timestamp)))
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tc3.ReceiveMessage(GameName, Node3, func(uid int64, msgId string, timestamp int64, msg []byte) {
-		//mp1.Store(msgId, struct{}{})
-		t.Logf("[333] time: %v, get message, msgId: %v, cost: %v", time.Now(), msgId, time.Since(time.UnixMilli(timestamp)))
+	if err := tc3.ReceiveMessage(GameName, Node3, func(_ int64, msgID string, timestamp int64, _ []byte) {
+		// mp1.Store(msgId, struct{}{})
+		t.Logf("[333] time: %v, get message, msgId: %v, cost: %v", time.Now(), msgID, time.Since(time.UnixMilli(timestamp)))
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -75,26 +75,26 @@ func TestRMQBroker(t *testing.T) {
 		defer wg.Done()
 		var count int64
 		for count < 1000 {
-			//time.Sleep(time.Millisecond * 20)
+			// time.Sleep(time.Millisecond * 20)
 			count++
-			msgId, err := tc1.SendMessage(10000, GameName, Node1, []byte(strconv.FormatInt(count, 10)))
+			msgID, err := tc1.SendMessage(10000, GameName, Node1, []byte(strconv.FormatInt(count, 10)))
 			if err != nil {
 				t.Error(err)
 				return
 			}
-			mp2.Store(msgId, struct{}{})
-			//t.Logf("time: %v, send message, msgId: %v", time.Now(), msgId)
+			mp2.Store(msgID, struct{}{})
+			// t.Logf("time: %v, send message, msgId: %v", time.Now(), msgId)
 		}
 	}()
 	wg.Wait()
 	time.Sleep(time.Second * 2)
 
 	var n1, n2 int
-	mp1.Range(func(key, value interface{}) bool {
+	mp1.Range(func(_, _ interface{}) bool {
 		n1++
 		return true
 	})
-	mp2.Range(func(key, value interface{}) bool {
+	mp2.Range(func(_, _ interface{}) bool {
 		n2++
 		return true
 	})
@@ -116,7 +116,7 @@ func TestRocketMQ(t *testing.T) {
 		ConsumerGroup: Group,
 		Credentials:   &credentials.SessionCredentials{},
 	},
-	//golang.WithTopics(Topic),
+	// golang.WithTopics(Topic),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -137,7 +137,6 @@ func TestRocketMQ(t *testing.T) {
 			Topic: golang.NewFilterExpression(GameName + "-" + Node),
 		}),
 	)
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +146,7 @@ func TestRocketMQ(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//simpleConsumer.Subscribe(Topic, golang.NewFilterExpression(GameName+"-"+Node))
+	// simpleConsumer.Subscribe(Topic, golang.NewFilterExpression(GameName+"-"+Node))
 
 	// gracefule stop simpleConsumer
 	defer func() {
@@ -155,7 +154,6 @@ func TestRocketMQ(t *testing.T) {
 	}()
 	mp := &sync.Map{}
 	go func() {
-
 		for {
 			mvs, err := simpleConsumer.Receive(context.TODO(), 16, time.Second*20)
 			if err != nil {
@@ -190,7 +188,7 @@ func TestRocketMQ(t *testing.T) {
 	// run for a while
 	time.Sleep(time.Second * 10)
 	t.Logf("====== 111")
-	mp.Range(func(key, value interface{}) bool {
+	mp.Range(func(key, _ interface{}) bool {
 		t.Logf(" === %v", key)
 		return true
 	})

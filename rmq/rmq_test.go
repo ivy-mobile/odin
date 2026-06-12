@@ -11,7 +11,6 @@ import (
 )
 
 func TestRMQ_TAG(t *testing.T) {
-
 	var (
 		Endpoint  = "10.80.1.64:19081"
 		Namespace = ""
@@ -29,10 +28,10 @@ func TestRMQ_TAG(t *testing.T) {
 			Body:  []byte(fmt.Sprintf("test-2-%d", i)),
 		}
 		msg.SetTag(TAG)
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
 		_, err = p.Send(msg)
 		assert.Equal(t, err, nil)
 	}
@@ -56,7 +55,6 @@ func TestRMQ_TAG(t *testing.T) {
 }
 
 func TestRMQ_ALL(t *testing.T) {
-
 	var (
 		Endpoint  = "10.80.1.64:19081"
 		Namespace = ""
@@ -74,10 +72,10 @@ func TestRMQ_ALL(t *testing.T) {
 			Body:  []byte(fmt.Sprintf("test-2-%d", i)),
 		}
 		msg.SetTag(TAG)
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
 		_, err = p.Send(msg)
 		assert.Equal(t, err, nil)
 	}
@@ -100,7 +98,6 @@ func TestRMQ_ALL(t *testing.T) {
 }
 
 func TestRMQ_SQL92(t *testing.T) {
-
 	var (
 		Endpoint  = "10.80.1.64:19081"
 		Namespace = ""
@@ -119,10 +116,10 @@ func TestRMQ_SQL92(t *testing.T) {
 		}
 		msg.SetTag(TAG)
 		msg.AddProperty("p1", "v1")
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
-		//msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_NORMAL_MESSAGE)      // 简单消息 - 默认
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_FIFO_MESSAGE)        // 顺序消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_DELAY_MESSAGE)       // 延迟消息
+		// msg.SetMessageGroup(golang.SPAN_ATTRIBUTE_VALUE_ROCKETMQ_TRANSACTION_MESSAGE) // 事务消息
 		_, err = p.Send(msg)
 		assert.Equal(t, err, nil)
 	}

@@ -155,22 +155,22 @@ func (a Vec2) Lerp(b Vec2, t float64) Vec2 {
 	return a.Add(b.Sub(a).Mul(t))
 }
 
-// ClampLen 把向量长度限制到不超过 max
+// ClampLen 把向量长度限制到不超过 maxLen
 //
-// max <= 0 时返回零向量
-func (a Vec2) ClampLen(max float64) Vec2 {
-	if max <= 0 {
+// maxLen <= 0 时返回零向量
+func (a Vec2) ClampLen(maxLen float64) Vec2 {
+	if maxLen <= 0 {
 		return Vec2{}
 	}
 	l2 := a.Len2()
-	max2 := max * max
+	max2 := maxLen * maxLen
 	if l2 <= max2 {
 		return a
 	}
 	if l2 == 0 {
 		return Vec2{}
 	}
-	return a.Mul(max / math.Sqrt(l2))
+	return a.Mul(maxLen / math.Sqrt(l2))
 }
 
 // ProjectOn 返回 a 在 b 上的投影向量

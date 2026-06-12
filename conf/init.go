@@ -9,14 +9,15 @@ import (
 	"strings"
 
 	"github.com/a8m/envsubst"
-	"github.com/ivy-mobile/odin/encoding/json"
-	"github.com/ivy-mobile/odin/encoding/toml"
-	"github.com/ivy-mobile/odin/encoding/yaml"
-	"github.com/ivy-mobile/odin/xutil/xconf"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+
+	"github.com/ivy-mobile/odin/encoding/json"
+	"github.com/ivy-mobile/odin/encoding/toml"
+	"github.com/ivy-mobile/odin/encoding/yaml"
+	"github.com/ivy-mobile/odin/xutil/xconf"
 )
 
 var (
@@ -158,7 +159,7 @@ func validateLoadOptions(sysFilename string, opts *options) error {
 
 	if hasBusinessTarget {
 		value := reflect.ValueOf(opts.target)
-		if value.Kind() != reflect.Ptr || value.IsNil() {
+		if value.Kind() != reflect.Pointer || value.IsNil() {
 			return errors.New("business Config target must be a non-nil pointer")
 		}
 	}

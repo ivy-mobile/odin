@@ -31,7 +31,7 @@ func TestLucky(t *testing.T) {
 	t.Log(xrand.Lucky(0))
 }
 
-func TestWeight(t *testing.T) {
+func TestWeight(_ *testing.T) {
 	total := 1000000
 
 	weights := []any{

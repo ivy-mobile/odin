@@ -6,8 +6,8 @@ func Int32(data any) int32 {
 	return int32(Int64(data))
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Int32s(data any) (slice []int32) {
-
 	if data == nil {
 		return
 	}
@@ -192,7 +192,7 @@ func Int32s(data any) (slice []int32) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

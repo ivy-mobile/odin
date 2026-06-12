@@ -111,7 +111,7 @@ func Duration(data any) time.Duration {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -139,6 +139,7 @@ func Duration(data any) time.Duration {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Durations(data any) (slice []time.Duration) {
 	if data == nil {
 		return
@@ -331,7 +332,7 @@ func Durations(data any) (slice []time.Duration) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/apache/rocketmq-clients/golang/v5"
+
 	"github.com/ivy-mobile/odin/encoding/json"
 	"github.com/ivy-mobile/odin/rmq"
 )
@@ -63,7 +64,6 @@ func (r *RMQBroker) ReceiveMessage(gameName, node string, fn func(uid int64, msg
 }
 
 func (r *RMQBroker) Close() error {
-
 	if r.rmqc != nil {
 		if err := r.rmqc.Close(); err != nil {
 			return err

@@ -7,6 +7,7 @@ import (
 	"unsafe"
 )
 
+//nolint:gocyclo // 覆盖多种基础类型转换，保持既有显式分支语义。
 func Bool(data any) bool {
 	if data == nil {
 		return false
@@ -95,7 +96,7 @@ func Bool(data any) bool {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -131,6 +132,7 @@ func Bool(data any) bool {
 	}
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Bools(data any) (slice []bool) {
 	if data == nil {
 		return
@@ -317,7 +319,7 @@ func Bools(data any) (slice []bool) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}
@@ -335,12 +337,12 @@ func Bools(data any) (slice []bool) {
 	return
 }
 
-func BoolPointer(any any) *bool {
-	v := Bool(any)
+func BoolPointer(data any) *bool {
+	v := Bool(data)
 	return &v
 }
 
-func BoolsPointer(any any) *[]bool {
-	v := Bools(any)
+func BoolsPointer(data any) *[]bool {
+	v := Bools(data)
 	return &v
 }

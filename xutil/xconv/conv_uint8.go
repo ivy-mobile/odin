@@ -6,6 +6,7 @@ func Uint8(data any) uint8 {
 	return uint8(Uint64(data))
 }
 
+//nolint:gocyclo // 覆盖多种切片/数组输入，保持既有显式分支语义。
 func Uint8s(data any) (slice []uint8) {
 	if data == nil {
 		return
@@ -192,7 +193,7 @@ func Uint8s(data any) (slice []uint8) {
 			kind = rv.Kind()
 		)
 
-		for kind == reflect.Ptr {
+		for kind == reflect.Pointer {
 			rv = rv.Elem()
 			kind = rv.Kind()
 		}

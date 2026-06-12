@@ -22,8 +22,8 @@ func NewWriterPool(capacities []int) *WriterPool {
 }
 
 // Get 获取
-func (p *WriterPool) Get(cap int) *Writer {
-	pool := p.getPool(cap)
+func (p *WriterPool) Get(size int) *Writer {
+	pool := p.getPool(size)
 	return pool.Get().(*Writer)
 }
 
@@ -34,9 +34,9 @@ func (p *WriterPool) Put(w *Writer) {
 }
 
 // 获取对象池
-func (p *WriterPool) getPool(cap int) *sync.Pool {
+func (p *WriterPool) getPool(size int) *sync.Pool {
 	for i, c := range p.capacities {
-		if cap <= c {
+		if size <= c {
 			return p.pools[i]
 		}
 	}

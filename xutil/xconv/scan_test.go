@@ -7,7 +7,6 @@ import (
 )
 
 func TestScanStruct(t *testing.T) {
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -23,7 +22,6 @@ func TestScanStruct(t *testing.T) {
 }
 
 func TestScanStructSlice(t *testing.T) {
-
 	type User struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`

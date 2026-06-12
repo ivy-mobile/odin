@@ -39,7 +39,7 @@ func (s *Space) Remove(id int64) {
 // All 返回成员列表快照。
 func (s *Space) All() []*Member {
 	members := make([]*Member, 0)
-	s.data.Range(func(key, value interface{}) bool {
+	s.data.Range(func(_ interface{}, value interface{}) bool {
 		members = append(members, value.(*Member))
 		return true
 	})

@@ -7,7 +7,7 @@ import (
 	"github.com/ivy-mobile/odin/xutil/xconv"
 )
 
-func TestBytesToString(t *testing.T) {
+func TestBytesToString(_ *testing.T) {
 	b := []byte("abc")
 
 	s := xconv.BytesToString(b)
@@ -17,7 +17,6 @@ func TestBytesToString(t *testing.T) {
 }
 
 func BenchmarkBytesToString(b *testing.B) {
-
 	for i := 0; i < b.N; i++ {
 		xconv.BytesToString([]byte("abc"))
 	}

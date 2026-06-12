@@ -15,24 +15,24 @@ type User struct {
 	Age int8
 }
 
-func TestNewxbuffer(t *testing.T) {
+func TestNewxbuffer(_ *testing.T) {
 	buff := &bytes.Buffer{}
 	buff.Grow(2)
 
-	binary.Write(buff, binary.BigEndian, int16(2))
+	_ = binary.Write(buff, binary.BigEndian, int16(2))
 
-	fmt.Println(buff.Bytes())
+	fmt.Println(buff.String())
 
 	writer := xbuffer.NewWriter(2)
 	writer.WriteInt16s(binary.BigEndian, int16(2))
 
-	fmt.Println(writer.Bytes())
+	fmt.Println(string(writer.Bytes()))
 
 	writer.Reset()
 	writer.WriteInt16s(binary.BigEndian, int16(20))
 	writer.WriteFloat32s(binary.BigEndian, 5.2)
 
-	fmt.Println(writer.Bytes())
+	fmt.Println(string(writer.Bytes()))
 
 	data := writer.Bytes()
 
@@ -51,7 +51,7 @@ func BenchmarkBuffer1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		buff := &bytes.Buffer{}
 		buff.Grow(1024)
-		binary.Write(buff, binary.BigEndian, data)
+		_ = binary.Write(buff, binary.BigEndian, data)
 		buff.Reset()
 	}
 }
@@ -98,11 +98,10 @@ func TestNewBuffer2(t *testing.T) {
 
 	buff.Release()
 
-	fmt.Println(buff.Bytes())
-
+	fmt.Println(string(buff.Bytes()))
 }
 
-func TestNocopyBuffer_Malloc(t *testing.T) {
+func TestNocopyBuffer_Malloc(_ *testing.T) {
 	buff := xbuffer.NewNocopyBuffer()
 
 	buff.Malloc(10)
@@ -110,7 +109,7 @@ func TestNocopyBuffer_Malloc(t *testing.T) {
 	buff.Malloc(250)
 }
 
-func TestNocopyBuffer_Mount(t *testing.T) {
+func TestNocopyBuffer_Mount(_ *testing.T) {
 	buff1 := xbuffer.NewNocopyBuffer()
 
 	writer1 := buff1.Malloc(8)
@@ -129,5 +128,5 @@ func TestNocopyBuffer_Mount(t *testing.T) {
 
 	buff1.Mount(buff2, xbuffer.Head)
 
-	fmt.Println(buff1.Bytes())
+	fmt.Println(string(buff1.Bytes()))
 }

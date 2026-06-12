@@ -6,7 +6,12 @@ import (
 	"github.com/ivy-mobile/odin/xutil/vec"
 )
 
-const defaultNormalizeEps = 1e-9
+const (
+	defaultNormalizeEps = 1e-9
+	lookRotationEps     = 0.0001
+	slerpLinearDot      = 0.9995
+	fallbackUpYLimit    = 0.999
+)
 
 // Quat 四元数(Quaternion)，用于表示旋转
 //
@@ -38,18 +43,18 @@ func LookRotation(forward vec.Vec3) Quat {
 func LookRotationX(forward vec.Vec3) Quat {
 	// 归一化前向向量
 	forward = forward.Normalize()
-	if forward.Len() < 0.0001 {
+	if forward.Len() < lookRotationEps {
 		return Identity()
 	}
 
 	// 使用世界上方向作为参考
-	up := vec.Vec3{0, 1, 0}
+	up := vec.Vec3{Y: 1}
 
 	// 计算右向量
 	right := up.Cross(forward).Normalize()
-	if right.Len() < 0.0001 {
+	if right.Len() < lookRotationEps {
 		// forward 与 up 平行，使用备用上方向
-		right = vec.Vec3{1, 0, 0}
+		right = vec.Vec3{X: 1}
 	}
 
 	// 重新计算上向量
@@ -284,7 +289,7 @@ func (a Quat) Slerp(b Quat, t float64) Quat {
 		cosTheta = -cosTheta
 	}
 
-	if cosTheta > 0.9995 {
+	if cosTheta > slerpLinearDot {
 		return qa.Lerp(qb, t).Normalize()
 	}
 
@@ -307,7 +312,7 @@ func (a Quat) Slerp(b Quat, t float64) Quat {
 }
 
 // SlerpX 球面线性插值（模拟 Unity 的 Quaternion.Slerp）
-func (q Quat) SlerpX(target Quat, t float64) Quat {
+func (a Quat) SlerpX(target Quat, t float64) Quat {
 	if t < 0 {
 		t = 0
 	}
@@ -316,7 +321,7 @@ func (q Quat) SlerpX(target Quat, t float64) Quat {
 	}
 
 	// 计算点积
-	dot := q.Dot(target)
+	dot := a.Dot(target)
 
 	// 如果点积为负，取反一个四元数以获得最短路径
 	if dot < 0 {
@@ -325,12 +330,12 @@ func (q Quat) SlerpX(target Quat, t float64) Quat {
 	}
 
 	// 如果四元数非常接近，使用线性插值避免除零
-	if dot > 0.9995 {
+	if dot > slerpLinearDot {
 		return Quat{
-			X: q.X + (target.X-q.X)*t,
-			Y: q.Y + (target.Y-q.Y)*t,
-			Z: q.Z + (target.Z-q.Z)*t,
-			W: q.W + (target.W-q.W)*t,
+			X: a.X + (target.X-a.X)*t,
+			Y: a.Y + (target.Y-a.Y)*t,
+			Z: a.Z + (target.Z-a.Z)*t,
+			W: a.W + (target.W-a.W)*t,
 		}.Normalize()
 	}
 
@@ -344,10 +349,10 @@ func (q Quat) SlerpX(target Quat, t float64) Quat {
 	s1 := sinTheta / sinTheta0
 
 	return Quat{
-		X: q.X*s0 + target.X*s1,
-		Y: q.Y*s0 + target.Y*s1,
-		Z: q.Z*s0 + target.Z*s1,
-		W: q.W*s0 + target.W*s1,
+		X: a.X*s0 + target.X*s1,
+		Y: a.Y*s0 + target.Y*s1,
+		Z: a.Z*s0 + target.Z*s1,
+		W: a.W*s0 + target.W*s1,
 	}.Normalize()
 }
 
@@ -357,7 +362,7 @@ func (a Quat) AlmostEqual(b Quat, eps float64) bool {
 }
 
 func fallbackUp(forward vec.Vec3) vec.Vec3 {
-	if math.Abs(forward.Y) < 0.999 {
+	if math.Abs(forward.Y) < fallbackUpYLimit {
 		return vec.Vec3{Y: 1}
 	}
 	return vec.Vec3{X: 1}

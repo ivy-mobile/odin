@@ -22,6 +22,7 @@ type defaultPool struct {
 	pool *ants.Pool
 }
 
+//nolint:revive // 保持既有 API：调用方可能依赖具体返回类型的方法集。
 func NewPool(opts ...Option) *defaultPool {
 	o := defaultOptions()
 	for _, opt := range opts {
@@ -62,7 +63,6 @@ func GetPool() Pool {
 
 // AddTask 添加任务
 func AddTask(task func()) {
-
 	if globalPool == nil {
 		xgo.Go(task)
 		return

@@ -106,7 +106,6 @@ func InternalIP() (string, error) {
 			case *net.IPAddr:
 				ipnet = v.IP
 			default:
-				err = errors.New("invalid addr interface")
 				continue
 			}
 
@@ -128,9 +127,8 @@ func InternalIP() (string, error) {
 
 	if ip != "" {
 		return ip, nil
-	} else {
-		return "", errors.New("not found ip address")
 	}
+	return "", errors.New("not found ip address")
 }
 
 // ExternalIP 获取外网IP地址

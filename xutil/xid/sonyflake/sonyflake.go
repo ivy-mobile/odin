@@ -2,9 +2,7 @@ package sonyflake
 
 import "github.com/sony/sonyflake/v2"
 
-var (
-	defaultSonyflake *sonyflake.Sonyflake
-)
+var defaultSonyflake *sonyflake.Sonyflake
 
 func init() {
 	defaultSonyflake, _ = sonyflake.New(sonyflake.Settings{})
