@@ -1,0 +1,536 @@
+package nacos
+
+import (
+	"context"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/ivy-mobile/odin/registry"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+)
+
+var testServerConfig = []constant.ServerConfig{
+	*constant.NewServerConfig("10.80.1.67", 18848),
+}
+
+func TestRegistry_Register(t *testing.T) {
+	sc := testServerConfig
+
+	cc := constant.ClientConfig{
+		NamespaceId:         "zhaobin", // 命名空间 id
+		TimeoutMs:           5000,
+		NotLoadCacheAtStart: true,
+		LogDir:              "/tmp/nacos/log",
+		CacheDir:            "/tmp/nacos/cache",
+		LogLevel:            "debug",
+	}
+
+	// 更稳妥的方式创建 naming client
+	client, err := clients.NewNamingClient(
+		vo.NacosClientParam{
+			ClientConfig:  &cc,
+			ServerConfigs: sc,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := New(client)
+
+	testServer := &registry.ServiceInstance{
+		ID:        "1",
+		Name:      "test1",
+		Version:   "v1.0.0",
+		Endpoints: []string{"http://127.0.0.1:8080?isSecure=false"},
+	}
+	testServerWithMetadata := &registry.ServiceInstance{
+		ID:        "1",
+		Name:      "test1",
+		Version:   "v1.0.0",
+		Endpoints: []string{"http://127.0.0.1:8080?isSecure=false"},
+		Metadata:  map[string]string{"idc": "shanghai-xs"},
+	}
+	type fields struct {
+		registry *Registry
+	}
+	type args struct {
+		ctx     context.Context
+		service *registry.ServiceInstance
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		wantErr   bool
+		deferFunc func(t *testing.T)
+	}{
+		{
+			name: "normal",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx:     context.Background(),
+				service: testServer,
+			},
+			wantErr: false,
+			deferFunc: func(t *testing.T) {
+				err = r.Deregister(context.Background(), testServer)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+		},
+		{
+			name: "withMetadata",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx:     context.Background(),
+				service: testServerWithMetadata,
+			},
+			wantErr: false,
+			deferFunc: func(t *testing.T) {
+				err = r.Deregister(context.Background(), testServerWithMetadata)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+		},
+		{
+			name: "error",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx: context.Background(),
+				service: &registry.ServiceInstance{
+					ID:        "1",
+					Name:      "",
+					Version:   "v1.0.0",
+					Endpoints: []string{"http://127.0.0.1:8080?isSecure=false"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "urlError",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx: context.Background(),
+				service: &registry.ServiceInstance{
+					ID:        "1",
+					Name:      "test",
+					Version:   "v1.0.0",
+					Endpoints: []string{"127.0.0.1:8080"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "portError",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx: context.Background(),
+				service: &registry.ServiceInstance{
+					ID:        "1",
+					Name:      "test",
+					Version:   "v1.0.0",
+					Endpoints: []string{"http://127.0.0.1888"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "withCluster",
+			fields: fields{
+				registry: New(client, Cluster("test")),
+			},
+			args: args{
+				ctx:     context.Background(),
+				service: testServer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "withGroup",
+			fields: fields{
+				registry: New(client, Group("TEST_GROUP")),
+			},
+			args: args{
+				ctx:     context.Background(),
+				service: testServer,
+			},
+			wantErr: false,
+		},
+		{
+			name: "withWeight",
+			fields: fields{
+				registry: New(client, Weight(200)),
+			},
+			args: args{
+				ctx:     context.Background(),
+				service: testServer,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := tt.fields.registry
+			if tt.deferFunc != nil {
+				defer tt.deferFunc(t)
+			}
+			if err := r.Register(tt.args.ctx, tt.args.service); (err != nil) != tt.wantErr {
+				t.Errorf("Register error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestRegistry_Deregister(t *testing.T) {
+	testServer := &registry.ServiceInstance{
+		ID:        "1",
+		Name:      "test2",
+		Version:   "v1.0.0",
+		Endpoints: []string{"http://127.0.0.1:8080?isSecure=false"},
+	}
+
+	type args struct {
+		ctx     context.Context
+		service *registry.ServiceInstance
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		preFunc func(t *testing.T, r *Registry)
+	}{
+		{
+			name: "normal",
+			args: args{
+				ctx:     context.Background(),
+				service: testServer,
+			},
+			wantErr: false,
+			preFunc: func(t *testing.T, r *Registry) {
+				if err := r.Register(context.Background(), testServer); err != nil {
+					t.Fatal(err)
+				}
+				time.Sleep(time.Second * 3)
+			},
+		},
+		{
+			name: "error",
+			args: args{
+				ctx: context.Background(),
+				service: &registry.ServiceInstance{
+					ID:        "1",
+					Name:      "test",
+					Version:   "v1.0.0",
+					Endpoints: []string{"127.0.0.1:8080"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "errorPort",
+			args: args{
+				ctx: context.Background(),
+				service: &registry.ServiceInstance{
+					ID:        "1",
+					Name:      "notExist",
+					Version:   "v1.0.0",
+					Endpoints: []string{"http://127.0.0.18080"},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := testServerConfig
+
+			cc := constant.ClientConfig{
+				NamespaceId:         "public", // 命名空间 id
+				TimeoutMs:           5000,
+				NotLoadCacheAtStart: true,
+				LogDir:              "/tmp/nacos/log",
+				CacheDir:            "/tmp/nacos/cache",
+				LogLevel:            "debug",
+			}
+
+			// 更稳妥的方式创建 naming client
+			client, err := clients.NewNamingClient(
+				vo.NacosClientParam{
+					ClientConfig:  &cc,
+					ServerConfigs: sc,
+				},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r := New(client)
+			if tt.preFunc != nil {
+				tt.preFunc(t, r)
+			}
+			if err := r.Deregister(tt.args.ctx, tt.args.service); (err != nil) != tt.wantErr {
+				t.Errorf("Deregister error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && tt.name == "normal" {
+				time.Sleep(time.Second * 3)
+				got, err := r.GetService(context.Background(), tt.args.service.Name)
+				if err == nil || len(got) != 0 {
+					t.Errorf("GetService after Deregister got = %v, err = %v, want empty with error", got, err)
+				}
+			}
+		})
+	}
+}
+
+func TestRegistry_GetService(t *testing.T) {
+	sc := testServerConfig
+
+	cc := constant.ClientConfig{
+		NamespaceId:         "zhaobin", // 命名空间 id
+		TimeoutMs:           5000,
+		NotLoadCacheAtStart: true,
+		LogDir:              "/tmp/nacos/log",
+		CacheDir:            "/tmp/nacos/cache",
+		LogLevel:            "debug",
+	}
+
+	// 更稳妥的方式创建 naming client
+	client, err := clients.NewNamingClient(
+		vo.NacosClientParam{
+			ClientConfig:  &cc,
+			ServerConfigs: sc,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := New(client)
+	testServer := &registry.ServiceInstance{
+		ID:        "1",
+		Name:      "test3.grpc",
+		Version:   "v1.0.0",
+		Endpoints: []string{"grpc://127.0.0.1:8080?isSecure=false"},
+	}
+
+	type fields struct {
+		registry *Registry
+	}
+	type args struct {
+		ctx         context.Context
+		serviceName string
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		want      []*registry.ServiceInstance
+		wantErr   bool
+		preFunc   func(t *testing.T)
+		deferFunc func(t *testing.T)
+	}{
+		{
+			name: "normal",
+			preFunc: func(t *testing.T) {
+				err = r.Register(context.Background(), testServer)
+				if err != nil {
+					t.Error(err)
+				}
+				time.Sleep(time.Second * 3)
+			},
+			deferFunc: func(t *testing.T) {
+				err = r.Deregister(context.Background(), testServer)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+			fields: fields{
+				registry: r,
+			},
+			args: args{
+				ctx:         context.Background(),
+				serviceName: testServer.Name,
+			},
+			want: []*registry.ServiceInstance{{
+				ID:        "127.0.0.1#8080#DEFAULT#DEFAULT_GROUP@@test3.grpc",
+				Name:      "DEFAULT_GROUP@@test3.grpc",
+				Version:   "v1.0.0",
+				Metadata:  map[string]string{"version": "v1.0.0", "kind": "grpc", "weight": "100"},
+				Endpoints: []string{"grpc://127.0.0.1:8080"},
+			}},
+			wantErr: false,
+		},
+		{
+			name: "errorNotExist",
+			fields: fields{
+				registry: r,
+			},
+			args: args{
+				ctx:         context.Background(),
+				serviceName: "notExist",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.preFunc != nil {
+				tt.preFunc(t)
+			}
+			if tt.deferFunc != nil {
+				defer tt.deferFunc(t)
+			}
+			r := tt.fields.registry
+			got, err := r.GetService(tt.args.ctx, tt.args.serviceName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetService error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetService got = %v", got)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetService got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRegistry_Watch(t *testing.T) {
+	sc := testServerConfig
+
+	cc := constant.ClientConfig{
+		NamespaceId:         "public", // 命名空间 id
+		TimeoutMs:           5000,
+		NotLoadCacheAtStart: true,
+		LogDir:              "/tmp/nacos/log",
+		CacheDir:            "/tmp/nacos/cache",
+		LogLevel:            "debug",
+	}
+
+	// 更稳妥的方式创建 naming client
+	client, err := clients.NewNamingClient(
+		vo.NacosClientParam{
+			ClientConfig:  &cc,
+			ServerConfigs: sc,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := New(client)
+
+	testServer := &registry.ServiceInstance{
+		ID:        "1",
+		Name:      "test4.grpc",
+		Version:   "v1.0.0",
+		Endpoints: []string{"grpc://127.0.0.1:8080?isSecure=false"},
+	}
+
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	type fields struct {
+		registry *Registry
+	}
+	type args struct {
+		ctx         context.Context
+		serviceName string
+	}
+	tests := []struct {
+		name        string
+		fields      fields
+		args        args
+		wantErr     bool
+		want        []*registry.ServiceInstance
+		processFunc func(t *testing.T)
+	}{
+		{
+			name: "normal",
+			fields: fields{
+				registry: New(client),
+			},
+			args: args{
+				ctx:         context.Background(),
+				serviceName: testServer.Name,
+			},
+			wantErr: false,
+			want: []*registry.ServiceInstance{{
+				ID:        "127.0.0.1#8080#DEFAULT#DEFAULT_GROUP@@test4.grpc",
+				Name:      "DEFAULT_GROUP@@test4.grpc",
+				Version:   "v1.0.0",
+				Metadata:  map[string]string{"version": "v1.0.0", "kind": "grpc", "weight": "100"},
+				Endpoints: []string{"grpc://127.0.0.1:8080"},
+			}},
+			processFunc: func(t *testing.T) {
+				err = r.Register(context.Background(), testServer)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+		},
+		{
+			name: "ctxCancel",
+			fields: fields{
+				registry: r,
+			},
+			args: args{
+				ctx:         cancelCtx,
+				serviceName: testServer.Name,
+			},
+			wantErr: true,
+			want:    nil,
+			processFunc: func(*testing.T) {
+				cancel()
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := tt.fields.registry
+			watch, err := r.Watch(tt.args.ctx, tt.args.serviceName)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			defer func() {
+				err = watch.Stop()
+				if err != nil {
+					t.Error(err)
+				}
+			}()
+			_, err = watch.Next()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if tt.processFunc != nil {
+				tt.processFunc(t)
+			}
+
+			want, err := watch.Next()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Watch error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(want, tt.want) {
+				if len(want) > 0 && len(tt.want) > 0 {
+					t.Errorf("Watch got = %+v, want %+v", *want[0], *tt.want[0])
+				} else {
+					t.Errorf("Watch got = %v, want %v", want, tt.want)
+				}
+			}
+		})
+	}
+}
