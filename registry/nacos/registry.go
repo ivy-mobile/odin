@@ -10,10 +10,11 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/ivy-mobile/odin/registry"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+
+	"github.com/ivy-mobile/odin/registry"
 )
 
 var ErrServiceInstanceNameEmpty = errors.New("meta/nacos: ServiceInstance.Name can not be empty")
