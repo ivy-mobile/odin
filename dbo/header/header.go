@@ -16,6 +16,7 @@ const (
 	NodeID   = "x-node-id" // 节点 ID
 	Version  = "x-version" // 服务版本
 	MsgID    = "x-msg-id"  // 消息 ID
+	UserID   = "x-user-id" // 用户 ID (用户级请求才会有,由业务层自行处理)
 )
 
 // Header 表示写入 Dubbo attachment 的业务请求头
@@ -123,7 +124,7 @@ func (h Header) MsgID() string {
 
 // UserID 获取用户 ID
 func (h Header) UserID() string {
-	return h[MsgID]
+	return h[UserID]
 }
 
 // From 从 context 的 Dubbo attachment 中读取 string header
@@ -160,6 +161,16 @@ func Add(ctx context.Context, key, value string) context.Context {
 	}
 	attachments[key] = value
 	return context.WithValue(ctx, constant.AttachmentKey, attachments)
+}
+
+// AddUserID 向 context 的 Dubbo attachment 中追加用户 ID
+func AddUserID(ctx context.Context, userID string) context.Context {
+	return Add(ctx, UserID, userID)
+}
+
+// AddMsgID 向 context 的 Dubbo attachment 中追加消息追踪 ID
+func AddMsgID(ctx context.Context, msgID string) context.Context {
+	return Add(ctx, MsgID, msgID)
 }
 
 // AddIfAbsent 在 header 不存在时追加默认值
