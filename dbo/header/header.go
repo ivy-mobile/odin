@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	GameID   = "x-id"
-	GameName = "x-name"
-	Env      = "x-env"
-	NodeID   = "x-node-id"
-	Version  = "x-version"
-	MsgID    = "x-msg-id"
+	GameID   = "x-id"      // 游戏 ID
+	GameName = "x-name"    // 游戏名称
+	Env      = "x-env"     // 运行环境
+	NodeID   = "x-node-id" // 节点 ID
+	Version  = "x-version" // 服务版本
+	MsgID    = "x-msg-id"  // 消息 ID
 )
 
 // Header 表示写入 Dubbo attachment 的业务请求头
@@ -118,6 +118,11 @@ func (h Header) Version() string {
 
 // MsgID 返回消息追踪 ID
 func (h Header) MsgID() string {
+	return h[MsgID]
+}
+
+// UserID 获取用户 ID
+func (h Header) UserID() string {
 	return h[MsgID]
 }
 
