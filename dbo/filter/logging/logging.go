@@ -40,8 +40,7 @@ func (l *logFilter) Invoke(ctx context.Context, invoker protocol.Invoker, invoca
 		Str("DubboService", invoker.GetURL().Service()).
 		Str("Method", invocation.MethodName()).
 		Str("msg-id", h.MsgID()).
-		Str("node-id", h.NodeID()).
-		Duration("cost", time.Since(start))
+		Str("node-id", h.NodeID())
 
 	// 检查响应状态
 	if err := result.Error(); err != nil {
@@ -57,7 +56,7 @@ func (l *logFilter) Invoke(ctx context.Context, invoker protocol.Invoker, invoca
 		if attachments := result.Attachments(); len(attachments) > 0 {
 			logEvent.Int("resp-attachments", len(attachments))
 		}
-		logEvent.Msg("[DubboRequest] success")
+		logEvent.Msgf("[DubboRequest] success, cost: %v", time.Since(start))
 	}
 
 	return result
