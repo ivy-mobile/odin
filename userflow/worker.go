@@ -31,10 +31,10 @@ func newWorker(parentCtx context.Context, userID int64, queueSize int, rateLimit
 	}
 }
 
-// close 关闭工作者
+// close 关闭工作者（只取消上下文，不关闭 queue）
+// queue 的关闭由 processUserEvents 的 cleanupWorker 负责
 func (w *worker) close() {
 	w.closeOnce.Do(func() {
 		w.cancel()
-		close(w.queue)
 	})
 }

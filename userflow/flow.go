@@ -155,9 +155,14 @@ func (f *Flow) processUserEvents(w *worker) {
 	for {
 		select {
 		case <-w.ctx.Done():
-			// 用户被踢出或管理器关闭
+			// 用户被踢出或管理器关闭，先排空队列中的剩余消息
+			f.drainQueue(w)
 			return
-		case msg := <-w.queue:
+		case msg, ok := <-w.queue:
+			if !ok {
+				// 队列已关闭
+				return
+			}
 			// 处理事件
 			f.handleEvent(w, msg)
 		}
@@ -175,7 +180,8 @@ func (f *Flow) handleEvent(w *worker, msg *envelope.InputMessage) {
 			if f.metrics != nil {
 				f.metrics.IncFailed(w.userID)
 			}
-			// 可以在这里记录日志等
+			// TODO: 添加日志记录，输出 panic 信息和堆栈
+			// 例如: log.Printf("userflow: panic handling message for user %d: %v\n%s", w.userID, r, debug.Stack())
 		}
 	}()
 
@@ -187,16 +193,37 @@ func (f *Flow) handleEvent(w *worker, msg *envelope.InputMessage) {
 	}
 }
 
+// drainQueue 排空队列中的剩余消息
+func (f *Flow) drainQueue(w *worker) {
+	for {
+		select {
+		case msg, ok := <-w.queue:
+			if !ok {
+				return
+			}
+			f.handleEvent(w, msg)
+		default:
+			// 队列已空
+			return
+		}
+	}
+}
+
 // cleanupWorker 清理工作者
 func (f *Flow) cleanupWorker(w *worker) {
-	w.closeOnce.Do(func() {
-		close(w.queue)
-		f.workers.Delete(w.userID)
-		f.userCount.Add(-1)
-		if f.metrics != nil {
-			f.metrics.SetActiveUsers(f.userCount.Load())
-		}
-	})
+	// 关闭队列
+	close(w.queue)
+
+	// 从 workers map 中删除
+	f.workers.Delete(w.userID)
+
+	// 更新活跃用户计数
+	f.userCount.Add(-1)
+	if f.metrics != nil {
+		f.metrics.SetActiveUsers(f.userCount.Load())
+		// 清理用户的 metrics 数据，防止内存泄漏
+		f.metrics.DeleteUserMetrics(w.userID)
+	}
 }
 
 // KickUser 踢出用户，释放对应资源

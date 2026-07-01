@@ -104,6 +104,11 @@ func (m *Metrics) GetAllUserMetrics() map[int64]*UserMetrics {
 	return result
 }
 
+// DeleteUserMetrics 删除指定用户的指标数据
+func (m *Metrics) DeleteUserMetrics(userID int64) {
+	m.userMetrics.Delete(userID)
+}
+
 // AverageLatency 计算平均延迟
 func (um *UserMetrics) AverageLatency() time.Duration {
 	count := um.latencyCount.Load()
