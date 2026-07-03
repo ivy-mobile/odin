@@ -11,7 +11,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/uuid v1.6.0
-	github.com/nacos-group/nacos-sdk-go/v2 v2.3.2
+	github.com/nacos-group/nacos-sdk-go/v2 v2.3.5
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/panjf2000/ants/v2 v2.11.3
 	github.com/rs/zerolog v1.34.0
