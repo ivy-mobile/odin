@@ -25,7 +25,7 @@ const (
 	defaultMessageFieldName = "message"
 	defaultTimeFormat       = time.RFC3339
 	defaultMode             = ModeConsole
-	defaultFormat           = ""
+	defaultFormat           = FormatJSON
 
 	// default value about file
 	defaultFilename   = "./logs.log"

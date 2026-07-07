@@ -16,9 +16,9 @@ func TestOutputFormatDefaultsByMode(t *testing.T) {
 		want string
 	}{
 		{
-			name: "console target defaults to text format",
+			name: "console target defaults to json format",
 			mode: ModeConsole,
-			want: FormatText,
+			want: FormatJSON,
 		},
 		{
 			name: "file target defaults to json format",
@@ -96,9 +96,8 @@ func TestNewOutputAppliesFormatToOutputTarget(t *testing.T) {
 		wantFileTarget bool
 	}{
 		{
-			name:        "console target with default text format",
-			mode:        ModeConsole,
-			wantConsole: true,
+			name: "console target with default json format",
+			mode: ModeConsole,
 		},
 		{
 			name:   "console target with json format",

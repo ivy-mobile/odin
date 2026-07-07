@@ -158,13 +158,7 @@ func newTextOutput(output io.Writer, ops *options) zerolog.ConsoleWriter {
 }
 
 func outputFormat(ops *options) string {
-	if ops.format != "" {
-		return ops.format
-	}
-	if ops.mode == ModeFile {
-		return FormatJSON
-	}
-	return FormatText
+	return ops.format
 }
 
 func convertLevel(level string) zerolog.Level {
