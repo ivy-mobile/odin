@@ -126,14 +126,12 @@ func (d *defaultEntry) Msgf(format string, args ...any) {
 }
 
 func newOutput(ops *options) io.Writer {
+	var output io.Writer
 	switch ops.mode {
 	case ModeConsole:
-		return zerolog.ConsoleWriter{
-			Out:        os.Stdout,
-			TimeFormat: ops.timeFormat,
-		}
+		output = os.Stdout
 	case ModeFile:
-		return &lumberjack.Logger{
+		output = &lumberjack.Logger{
 			Filename:   ops.fileOpts.filename,
 			MaxSize:    ops.fileOpts.maxSize,
 			MaxAge:     ops.fileOpts.maxAge,
@@ -141,10 +139,32 @@ func newOutput(ops *options) io.Writer {
 			LocalTime:  ops.fileOpts.localTime,
 			Compress:   ops.fileOpts.compress,
 		}
-	case ModeJSON:
-		return os.Stdout
+	default:
+		output = os.Stdout
 	}
-	return os.Stdout
+
+	if outputFormat(ops) == FormatText {
+		return newTextOutput(output, ops)
+	}
+	return output
+}
+
+func newTextOutput(output io.Writer, ops *options) zerolog.ConsoleWriter {
+	return zerolog.ConsoleWriter{
+		Out:        output,
+		NoColor:    ops.mode == ModeFile,
+		TimeFormat: ops.timeFormat,
+	}
+}
+
+func outputFormat(ops *options) string {
+	if ops.format != "" {
+		return ops.format
+	}
+	if ops.mode == ModeFile {
+		return FormatJSON
+	}
+	return FormatText
 }
 
 func convertLevel(level string) zerolog.Level {

@@ -15,8 +15,9 @@ type options struct {
 	timeFieldName    string      // 时间字段名, 默认: time
 	messageFieldName string      // 日志内容字段名, 默认: message
 	timeFormat       string      // 时间格式, 默认: 2006-01-02T15:04:05Z07:00 (time.RFC3339)
-	mode             string      // 日志模式, 默认: console, 可选: console,file
-	fileOpts         fileOptions // 日志模式为file时,相关配置 默认: ./logs.log, 10MB, 10个文件, 10天, 不压缩, UTC时间
+	mode             string      // 日志输出目标, 默认: console, 可选: console,file
+	format           string      // 日志输出格式, 默认: 根据mode选择, 可选: text,json
+	fileOpts         fileOptions // 日志输出目标为file时,相关配置 默认: ./logs.log, 10MB, 10个文件, 10天, 不压缩, UTC时间
 }
 
 type Option func(*options)
@@ -29,6 +30,7 @@ func defaultOptions() *options {
 		messageFieldName: defaultMessageFieldName,
 		timeFormat:       defaultTimeFormat,
 		mode:             defaultMode,
+		format:           defaultFormat,
 		fileOpts: fileOptions{
 			filename:   defaultFilename,
 			maxSize:    defaultMaxSize,
@@ -52,11 +54,20 @@ func WithLevel(level string) Option {
 	}
 }
 
-// WithMode 指定输出模式, 默认console, 可选: console, file
+// WithMode 指定日志输出目标, 默认console, 可选: console,file
 func WithMode(mode string) Option {
 	return func(o *options) {
-		if mode == ModeConsole || mode == ModeFile || mode == ModeJSON {
+		if mode == ModeConsole || mode == ModeFile {
 			o.mode = mode
+		}
+	}
+}
+
+// WithFormat 指定日志输出格式, 默认根据输出目标选择, 可选: text,json
+func WithFormat(format string) Option {
+	return func(o *options) {
+		if format == FormatText || format == FormatJSON {
+			o.format = format
 		}
 	}
 }

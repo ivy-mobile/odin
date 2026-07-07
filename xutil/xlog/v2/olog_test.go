@@ -2,6 +2,8 @@ package v2_test
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -128,4 +130,65 @@ func TestOlog(_ *testing.T) {
 
 	log.With("Module", "Test1").With("Func", "TestOlog").Info().Msg("model test")
 	log.Info().Str("Name", "Art").Int("Age", 18).Msg("info test")
+}
+
+func TestObserveModeFormatOutputs(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	t.Log("console target + text format")
+	logv2.New(
+		logv2.WithMode(logv2.ModeConsole),
+		logv2.WithFormat(logv2.FormatText),
+	).With("case", "console-text").Info().
+		Str("name", "Art").
+		Int("age", 18).
+		Bool("active", true).
+		Msg("observe xlog output")
+
+	t.Log("console target + json format")
+	logv2.New(
+		logv2.WithMode(logv2.ModeConsole),
+		logv2.WithFormat(logv2.FormatJSON),
+	).With("case", "console-json").Info().
+		Str("name", "Art").
+		Int("age", 18).
+		Bool("active", true).
+		Msg("observe xlog output")
+
+	fileJSON := filepath.Join(tmpDir, "xlog-json.log")
+	t.Logf("file target + json format: %s", fileJSON)
+	logv2.New(
+		logv2.WithMode(logv2.ModeFile),
+		logv2.WithFormat(logv2.FormatJSON),
+		logv2.WithFile(fileJSON, 1, 1, 1, false, true),
+	).With("case", "file-json").Info().
+		Str("name", "Art").
+		Int("age", 18).
+		Bool("active", true).
+		Msg("observe xlog output")
+	logFileForObservation(t, fileJSON)
+
+	fileText := filepath.Join(tmpDir, "xlog-text.log")
+	t.Logf("file target + text format: %s", fileText)
+	logv2.New(
+		logv2.WithMode(logv2.ModeFile),
+		logv2.WithFormat(logv2.FormatText),
+		logv2.WithFile(fileText, 1, 1, 1, false, true),
+	).With("case", "file-text").Info().
+		Str("name", "Art").
+		Int("age", 18).
+		Bool("active", true).
+		Msg("observe xlog output")
+	logFileForObservation(t, fileText)
+}
+
+func logFileForObservation(t *testing.T, filename string) {
+	t.Helper()
+
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		t.Logf("read log file failed: %v", err)
+		return
+	}
+	t.Logf("%s content:\n%s", filename, string(content))
 }
