@@ -6,9 +6,11 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"net/url"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/ivy-mobile/odin/dingtalk/internal/signature"
 )
@@ -20,32 +22,19 @@ func TestSendTextWithSecret(t *testing.T) {
 	)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			t.Fatalf("method = %s, want %s", r.Method, http.MethodPost)
-		}
-		if got := r.URL.Query().Get("access_token"); got != "token" {
-			t.Fatalf("access_token = %q, want token", got)
-		}
-		if got := r.URL.Query().Get("timestamp"); got != "1234567890" {
-			t.Fatalf("timestamp = %q, want 1234567890", got)
-		}
-		if got, want := r.URL.Query().Get("sign"), signature.Sign(timestamp, secret); got != want {
-			t.Fatalf("sign = %q, want %q", got, want)
-		}
-		if got := r.Header.Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
-			t.Fatalf("Content-Type = %q, want application/json", got)
-		}
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Equal(t, "token", r.URL.Query().Get("access_token"))
+		require.Equal(t, "1234567890", r.URL.Query().Get("timestamp"))
+		require.Equal(t, signature.Sign(timestamp, secret), r.URL.Query().Get("sign"))
+		require.Contains(t, r.Header.Get("Content-Type"), "application/json")
 
 		var msg Message
-		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-			t.Fatal(err)
-		}
-		if msg.MsgType != MsgTypeText || msg.Text == nil || msg.Text.Content != "告警: 服务启动成功" {
-			t.Fatalf("unexpected message: %+v", msg)
-		}
-		if msg.At == nil || !msg.At.IsAtAll {
-			t.Fatalf("unexpected at: %+v", msg.At)
-		}
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&msg))
+		require.Equal(t, MsgTypeText, msg.MsgType)
+		require.NotNil(t, msg.Text)
+		require.Equal(t, "告警: 服务启动成功", msg.Text.Content)
+		require.NotNil(t, msg.At)
+		require.True(t, msg.At.IsAtAll)
 
 		_, _ = w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
 	}))
@@ -59,9 +48,7 @@ func TestSendTextWithSecret(t *testing.T) {
 		withClock(func() time.Time { return time.UnixMilli(timestamp) }),
 		AtAll(),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestSendAPIErr(t *testing.T) {
@@ -71,16 +58,17 @@ func TestSendAPIErr(t *testing.T) {
 	defer server.Close()
 
 	resp, err := Send(context.Background(), server.URL, NewText("hello"))
-	if resp == nil || resp.ErrCode != 310000 {
-		t.Fatalf("response = %+v, want errcode 310000", resp)
-	}
+	require.NotNil(t, resp)
+	require.Equal(t, 310000, resp.ErrCode)
+
 	var apiErr *APIError
-	if !errors.As(err, &apiErr) {
-		t.Fatalf("error = %v, want APIError", err)
-	}
-	if apiErr.Code != 310000 {
-		t.Fatalf("apiErr.Code = %d, want 310000", apiErr.Code)
-	}
+	require.ErrorAs(t, err, &apiErr)
+	require.Equal(t, 310000, apiErr.Code)
+}
+
+func TestErrorStrings(t *testing.T) {
+	require.Contains(t, (&APIError{Code: 1, Message: "bad"}).Error(), "code=1")
+	require.Contains(t, (&HTTPError{StatusCode: http.StatusBadGateway}).Error(), "502")
 }
 
 func TestSendHTTPError(t *testing.T) {
@@ -91,29 +79,61 @@ func TestSendHTTPError(t *testing.T) {
 
 	_, err := Send(context.Background(), server.URL, NewText("hello"))
 	var httpErr *HTTPError
-	if !errors.As(err, &httpErr) {
-		t.Fatalf("error = %v, want HTTPError", err)
-	}
-	if httpErr.StatusCode != http.StatusBadGateway {
-		t.Fatalf("status = %d, want %d", httpErr.StatusCode, http.StatusBadGateway)
-	}
-	if !strings.Contains(string(httpErr.Body), "bad gateway") {
-		t.Fatalf("body = %q, want bad gateway", httpErr.Body)
-	}
+	require.ErrorAs(t, err, &httpErr)
+	require.Equal(t, http.StatusBadGateway, httpErr.StatusCode)
+	require.Contains(t, string(httpErr.Body), "bad gateway")
+}
+
+func TestSendDecodeResponseError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`not-json`))
+	}))
+	defer server.Close()
+
+	_, err := Send(context.Background(), server.URL, NewText("hello"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "decode response")
+}
+
+func TestSendReadResponseError(t *testing.T) {
+	httpClient := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       errReadCloser{},
+			Header:     make(http.Header),
+		}, nil
+	})}
+
+	_, err := Send(context.Background(), "https://example.com/robot/send", NewText("hello"), WithHTTPClient(httpClient))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "read response")
+}
+
+func TestSendHTTPClientError(t *testing.T) {
+	httpClient := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return nil, errors.New("network down")
+	})}
+
+	_, err := Send(context.Background(), "https://example.com/robot/send", NewText("hello"), WithHTTPClient(httpClient))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "network down")
+}
+
+func TestSanitizeRequestErrorPlainError(t *testing.T) {
+	err := sanitizeRequestError(errors.New("plain"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "plain")
 }
 
 func TestSendMarkdownWithAtMobiles(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var msg Message
-		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-			t.Fatal(err)
-		}
-		if msg.MsgType != MsgTypeMarkdown || msg.Markdown == nil {
-			t.Fatalf("unexpected message: %+v", msg)
-		}
-		if msg.At == nil || len(msg.At.AtMobiles) != 1 || msg.At.AtMobiles[0] != "13800138000" {
-			t.Fatalf("unexpected at: %+v", msg.At)
-		}
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&msg))
+		require.Equal(t, MsgTypeMarkdown, msg.MsgType)
+		require.NotNil(t, msg.Markdown)
+		require.NotNil(t, msg.At)
+		require.Len(t, msg.At.AtMobiles, 1)
+		require.Equal(t, "13800138000", msg.At.AtMobiles[0])
 		_, _ = w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
 	}))
 	defer server.Close()
@@ -125,9 +145,18 @@ func TestSendMarkdownWithAtMobiles(t *testing.T) {
 		"### CPU 使用率过高",
 		AtMobiles("13800138000"),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+}
+
+func TestSendWithNilContextAndTimeout(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
+	}))
+	defer server.Close()
+
+	resp, err := Send(nil, server.URL, NewText("hello"), WithTimeout(time.Second))
+	require.NoError(t, err)
+	require.Equal(t, 0, resp.ErrCode)
 }
 
 func TestSendLink(t *testing.T) {
@@ -137,14 +166,72 @@ func TestSendLink(t *testing.T) {
 	defer server.Close()
 
 	err := SendLink(context.Background(), server.URL, "标题", "正文", "https://example.com", "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+}
+
+func TestSendActionMessages(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
+	}))
+	defer server.Close()
+
+	err := SendSingleActionCard(context.Background(), server.URL, "标题", "正文", "按钮", "https://example.com", BtnHorizontal)
+	require.NoError(t, err)
+
+	err = SendActionCard(context.Background(), server.URL, "标题", "正文", []ActionCardButton{
+		{Title: "按钮", ActionURL: "https://example.com"},
+	}, BtnVertical)
+	require.NoError(t, err)
+
+	err = SendFeedCard(context.Background(), server.URL, []FeedCardLink{
+		{Title: "标题", MessageURL: "https://example.com", PicURL: "https://example.com/pic.png"},
+	})
+	require.NoError(t, err)
 }
 
 func TestSendInvalidWebhook(t *testing.T) {
 	err := SendText(context.Background(), "", "hello")
-	if !errors.Is(err, ErrWebhookEmpty) {
-		t.Fatalf("error = %v, want ErrWebhookEmpty", err)
+	require.ErrorIs(t, err, ErrWebhookEmpty)
+}
+
+func TestSendInvalidWebhookFormat(t *testing.T) {
+	tests := []string{
+		"://bad",
+		"ftp://example.com/robot/send",
 	}
+	for _, webhook := range tests {
+		t.Run(webhook, func(t *testing.T) {
+			err := SendText(context.Background(), webhook, "hello")
+			require.ErrorIs(t, err, ErrWebhookInvalid)
+		})
+	}
+}
+
+func TestSendInvalidMessage(t *testing.T) {
+	_, err := Send(context.Background(), "https://example.com/robot/send", nil)
+	require.ErrorIs(t, err, ErrMessageNil)
+}
+
+func TestRequestURLWithoutSecret(t *testing.T) {
+	u, err := url.Parse("https://example.com/robot/send?access_token=token")
+	require.NoError(t, err)
+
+	got := requestURL(u, applyOptions())
+	require.Equal(t, "https://example.com/robot/send?access_token=token", got)
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+type errReadCloser struct{}
+
+func (errReadCloser) Read([]byte) (int, error) {
+	return 0, errors.New("read failed")
+}
+
+func (errReadCloser) Close() error {
+	return nil
 }
