@@ -19,12 +19,15 @@ const (
 	MsgTypeFeedCard = "feedCard"
 )
 
+// BtnOrientation 表示 actionCard 按钮排列方向
+type BtnOrientation string
+
 const (
 	// BtnVertical actionCard 按钮竖向排列
-	BtnVertical = "0"
+	BtnVertical BtnOrientation = "0"
 
 	// BtnHorizontal actionCard 按钮横向排列
-	BtnHorizontal = "1"
+	BtnHorizontal BtnOrientation = "1"
 )
 
 // Message 表示钉钉自定义机器人消息体
@@ -162,7 +165,7 @@ func NewMarkdown(title, text string, opts ...Option) *Message {
 }
 
 // NewSingleActionCard 创建单按钮 actionCard 消息
-func NewSingleActionCard(title, text, singleTitle, singleURL, orientation string, opts ...Option) *Message {
+func NewSingleActionCard(title, text, singleTitle, singleURL string, orientation BtnOrientation, opts ...Option) *Message {
 	at := atFromOptions(opts...)
 	return &Message{
 		MsgType: MsgTypeActionCard,
@@ -178,7 +181,7 @@ func NewSingleActionCard(title, text, singleTitle, singleURL, orientation string
 }
 
 // NewActionCard 创建独立跳转按钮 actionCard 消息
-func NewActionCard(title, text string, btns []ActionCardButton, orientation string, opts ...Option) *Message {
+func NewActionCard(title, text string, btns []ActionCardButton, orientation BtnOrientation, opts ...Option) *Message {
 	at := atFromOptions(opts...)
 	return &Message{
 		MsgType: MsgTypeActionCard,
@@ -299,9 +302,9 @@ func actionCardText(text string, at *At) string {
 	return text
 }
 
-func normalizeOrientation(orientation string) string {
+func normalizeOrientation(orientation BtnOrientation) string {
 	if orientation == BtnHorizontal {
-		return BtnHorizontal
+		return string(BtnHorizontal)
 	}
-	return BtnVertical
+	return string(BtnVertical)
 }

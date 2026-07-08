@@ -51,13 +51,13 @@ func SendLink(ctx context.Context, webhook, title, text, messageURL, picURL stri
 }
 
 // SendSingleActionCard 发送单按钮 actionCard 消息
-func SendSingleActionCard(ctx context.Context, webhook, title, text, singleTitle, singleURL, orientation string, opts ...Option) error {
+func SendSingleActionCard(ctx context.Context, webhook, title, text, singleTitle, singleURL string, orientation BtnOrientation, opts ...Option) error {
 	_, err := send(ctx, webhook, NewSingleActionCard(title, text, singleTitle, singleURL, orientation, opts...), opts...)
 	return err
 }
 
 // SendActionCard 发送独立跳转按钮 actionCard 消息
-func SendActionCard(ctx context.Context, webhook, title, text string, btns []ActionCardButton, orientation string, opts ...Option) error {
+func SendActionCard(ctx context.Context, webhook, title, text string, btns []ActionCardButton, orientation BtnOrientation, opts ...Option) error {
 	_, err := send(ctx, webhook, NewActionCard(title, text, btns, orientation, opts...), opts...)
 	return err
 }

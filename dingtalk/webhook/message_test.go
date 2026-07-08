@@ -146,8 +146,8 @@ func TestMessageValidate(t *testing.T) {
 }
 
 func TestNormalizeOrientation(t *testing.T) {
-	require.Equal(t, BtnHorizontal, normalizeOrientation(BtnHorizontal))
-	require.Equal(t, BtnVertical, normalizeOrientation("bad"))
+	require.Equal(t, string(BtnHorizontal), normalizeOrientation(BtnHorizontal))
+	require.Equal(t, string(BtnVertical), normalizeOrientation(BtnOrientation("bad")))
 }
 
 func TestMarkdownText(t *testing.T) {
