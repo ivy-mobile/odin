@@ -13,7 +13,29 @@ func TestNewMarkdownJSON(t *testing.T) {
 	data, err := json.Marshal(msg)
 	require.NoError(t, err)
 
-	want := `{"msgtype":"markdown","markdown":{"title":"告警","text":"### CPU 使用率过高"},"at":{"atMobiles":["13800138000"],"atUserIds":["user1"],"isAtAll":false}}`
+	want := `{"msgtype":"markdown","markdown":{"title":"告警","text":"### 告警\n\n### CPU 使用率过高\n\n@13800138000 @user1"},"at":{"atMobiles":["13800138000"],"atUserIds":["user1"],"isAtAll":false}}`
+	require.Equal(t, want, string(data))
+}
+
+func TestNewActionCardWithAtJSON(t *testing.T) {
+	msg := NewActionCard("告警", "CPU 使用率过高", []ActionCardButton{
+		{Title: "查看详情", ActionURL: "https://example.com"},
+	}, BtnHorizontal, AtMobiles("13800138000"))
+
+	data, err := json.Marshal(msg)
+	require.NoError(t, err)
+
+	want := `{"msgtype":"actionCard","actionCard":{"title":"告警","text":"CPU 使用率过高\n\n@13800138000","btnOrientation":"1","btns":[{"title":"查看详情","actionURL":"https://example.com"}]},"at":{"atMobiles":["13800138000"],"isAtAll":false}}`
+	require.Equal(t, want, string(data))
+}
+
+func TestNewSingleActionCardWithAtAllJSON(t *testing.T) {
+	msg := NewSingleActionCard("告警", "CPU 使用率过高", "查看详情", "https://example.com", BtnVertical, AtAll())
+
+	data, err := json.Marshal(msg)
+	require.NoError(t, err)
+
+	want := `{"msgtype":"actionCard","actionCard":{"title":"告警","text":"CPU 使用率过高\n\n@所有人","btnOrientation":"0","singleTitle":"查看详情","singleURL":"https://example.com"},"at":{"isAtAll":true}}`
 	require.Equal(t, want, string(data))
 }
 
@@ -59,11 +81,18 @@ func TestMessageValidate(t *testing.T) {
 			err:  ErrMessageContentEmpty,
 		},
 		{
-			name: "empty action card independent button",
+			name: "empty action card independent button title",
 			msg: NewActionCard("title", "text", []ActionCardButton{
 				{Title: "", ActionURL: "https://example.com"},
 			}, BtnVertical),
-			err: ErrMessageContentEmpty,
+			err: ErrActionCardButtonTitleEmpty,
+		},
+		{
+			name: "empty action card independent button action url",
+			msg: NewActionCard("title", "text", []ActionCardButton{
+				{Title: "button"},
+			}, BtnVertical),
+			err: ErrActionCardButtonActionURLEmpty,
 		},
 		{
 			name: "empty feed card",
@@ -119,4 +148,83 @@ func TestMessageValidate(t *testing.T) {
 func TestNormalizeOrientation(t *testing.T) {
 	require.Equal(t, BtnHorizontal, normalizeOrientation(BtnHorizontal))
 	require.Equal(t, BtnVertical, normalizeOrientation("bad"))
+}
+
+func TestMarkdownText(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  *Message
+		want string
+	}{
+		{
+			name: "title and mobile",
+			msg:  NewMarkdown("告警", "CPU 使用率过高", AtMobiles("13800138000")),
+			want: "### 告警\n\nCPU 使用率过高\n\n@13800138000",
+		},
+		{
+			name: "title already in text",
+			msg:  NewMarkdown("告警", "### 告警\n\nCPU 使用率过高", AtMobiles("13800138000")),
+			want: "### 告警\n\nCPU 使用率过高\n\n@13800138000",
+		},
+		{
+			name: "mention already in text",
+			msg:  NewMarkdown("告警", "CPU 使用率过高 @13800138000", AtMobiles("13800138000")),
+			want: "### 告警\n\nCPU 使用率过高 @13800138000",
+		},
+		{
+			name: "at all",
+			msg:  NewMarkdown("告警", "CPU 使用率过高", AtAll()),
+			want: "### 告警\n\nCPU 使用率过高\n\n@所有人",
+		},
+		{
+			name: "empty text keeps empty",
+			msg:  NewMarkdown("告警", "", AtAll()),
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, tt.msg.Markdown.Text)
+		})
+	}
+}
+
+func TestActionCardText(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  *Message
+		want string
+	}{
+		{
+			name: "mobile",
+			msg: NewActionCard("告警", "CPU 使用率过高", []ActionCardButton{
+				{Title: "查看详情", ActionURL: "https://example.com"},
+			}, BtnVertical, AtMobiles("13800138000")),
+			want: "CPU 使用率过高\n\n@13800138000",
+		},
+		{
+			name: "mention already in text",
+			msg: NewActionCard("告警", "CPU 使用率过高 @13800138000", []ActionCardButton{
+				{Title: "查看详情", ActionURL: "https://example.com"},
+			}, BtnVertical, AtMobiles("13800138000")),
+			want: "CPU 使用率过高 @13800138000",
+		},
+		{
+			name: "at all",
+			msg:  NewSingleActionCard("告警", "CPU 使用率过高", "查看详情", "https://example.com", BtnVertical, AtAll()),
+			want: "CPU 使用率过高\n\n@所有人",
+		},
+		{
+			name: "empty text keeps empty",
+			msg:  NewSingleActionCard("告警", "", "查看详情", "https://example.com", BtnVertical, AtAll()),
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, tt.msg.ActionCard.Text)
+		})
+	}
 }

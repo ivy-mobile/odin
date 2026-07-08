@@ -23,6 +23,12 @@ var (
 
 	// ErrMessageContentEmpty 消息内容为空或缺少必填字段
 	ErrMessageContentEmpty = errors.New("dingtalk/webhook: message content can not be empty")
+
+	// ErrActionCardButtonTitleEmpty actionCard 独立按钮标题为空
+	ErrActionCardButtonTitleEmpty = errors.New("dingtalk/webhook: action card button title can not be empty")
+
+	// ErrActionCardButtonActionURLEmpty actionCard 独立按钮跳转地址为空
+	ErrActionCardButtonActionURLEmpty = errors.New("dingtalk/webhook: action card button action url can not be empty")
 )
 
 // APIError 表示钉钉业务错误响应

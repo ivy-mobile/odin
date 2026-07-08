@@ -47,7 +47,7 @@ type Message struct {
 	// FeedCard feedCard 消息内容，仅在 MsgTypeFeedCard 时使用
 	FeedCard *FeedCard `json:"feedCard,omitempty"`
 
-	// At @ 设置，仅 text 和 markdown 消息支持
+	// At @ 设置，仅 text、markdown 和 actionCard 消息支持
 	At *At `json:"at,omitempty"`
 }
 
@@ -153,37 +153,42 @@ func NewLink(title, text, messageURL, picURL string) *Message {
 
 // NewMarkdown 创建 markdown 消息
 func NewMarkdown(title, text string, opts ...Option) *Message {
+	at := atFromOptions(opts...)
 	return &Message{
 		MsgType:  MsgTypeMarkdown,
-		Markdown: &Markdown{Title: title, Text: text},
-		At:       atFromOptions(opts...),
+		Markdown: &Markdown{Title: title, Text: markdownText(title, text, at)},
+		At:       at,
 	}
 }
 
 // NewSingleActionCard 创建单按钮 actionCard 消息
-func NewSingleActionCard(title, text, singleTitle, singleURL, orientation string) *Message {
+func NewSingleActionCard(title, text, singleTitle, singleURL, orientation string, opts ...Option) *Message {
+	at := atFromOptions(opts...)
 	return &Message{
 		MsgType: MsgTypeActionCard,
 		ActionCard: &ActionCard{
 			Title:          title,
-			Text:           text,
+			Text:           actionCardText(text, at),
 			SingleTitle:    singleTitle,
 			SingleURL:      singleURL,
 			BtnOrientation: normalizeOrientation(orientation),
 		},
+		At: at,
 	}
 }
 
 // NewActionCard 创建独立跳转按钮 actionCard 消息
-func NewActionCard(title, text string, btns []ActionCardButton, orientation string) *Message {
+func NewActionCard(title, text string, btns []ActionCardButton, orientation string, opts ...Option) *Message {
+	at := atFromOptions(opts...)
 	return &Message{
 		MsgType: MsgTypeActionCard,
 		ActionCard: &ActionCard{
 			Title:          title,
-			Text:           text,
+			Text:           actionCardText(text, at),
 			Btns:           btns,
 			BtnOrientation: normalizeOrientation(orientation),
 		},
+		At: at,
 	}
 }
 
@@ -245,8 +250,11 @@ func validateActionCard(card *ActionCard) error {
 		return nil
 	}
 	for _, btn := range card.Btns {
-		if strings.TrimSpace(btn.Title) == "" || strings.TrimSpace(btn.ActionURL) == "" {
-			return ErrMessageContentEmpty
+		if strings.TrimSpace(btn.Title) == "" {
+			return ErrActionCardButtonTitleEmpty
+		}
+		if strings.TrimSpace(btn.ActionURL) == "" {
+			return ErrActionCardButtonActionURLEmpty
 		}
 	}
 	return nil
@@ -264,6 +272,31 @@ func validateFeedCard(card *FeedCard) error {
 		}
 	}
 	return nil
+}
+
+func markdownText(title, text string, at *At) string {
+	if strings.TrimSpace(text) == "" {
+		return text
+	}
+	body := text
+	trimTitle := strings.TrimSpace(title)
+	if trimTitle != "" && !strings.Contains(body, trimTitle) {
+		body = "### " + trimTitle + "\n\n" + body
+	}
+	if mentions := at.visibleMentions(body); mentions != "" {
+		body += "\n\n" + mentions
+	}
+	return body
+}
+
+func actionCardText(text string, at *At) string {
+	if strings.TrimSpace(text) == "" {
+		return text
+	}
+	if mentions := at.visibleMentions(text); mentions != "" {
+		return text + "\n\n" + mentions
+	}
+	return text
 }
 
 func normalizeOrientation(orientation string) string {

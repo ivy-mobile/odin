@@ -1,5 +1,7 @@
 package webhook
 
+import "strings"
+
 // At 表示钉钉消息 @ 设置
 type At struct {
 	// AtMobiles 需要 @ 的用户手机号列表
@@ -42,4 +44,27 @@ func appendNonEmpty(dst []string, vals ...string) []string {
 		}
 	}
 	return dst
+}
+
+func (at *At) visibleMentions(text string) string {
+	if at == nil {
+		return ""
+	}
+	mentions := make([]string, 0, len(at.AtMobiles)+len(at.AtUserIDs)+1)
+	for _, mobile := range at.AtMobiles {
+		mention := "@" + mobile
+		if !strings.Contains(text, mention) {
+			mentions = append(mentions, mention)
+		}
+	}
+	for _, userID := range at.AtUserIDs {
+		mention := "@" + userID
+		if !strings.Contains(text, mention) {
+			mentions = append(mentions, mention)
+		}
+	}
+	if at.IsAtAll && !strings.Contains(text, "@所有人") && !strings.Contains(text, "@all") {
+		mentions = append(mentions, "@所有人")
+	}
+	return strings.Join(mentions, " ")
 }

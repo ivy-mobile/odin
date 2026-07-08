@@ -45,6 +45,8 @@ func main() {
 
 ## Markdown 消息
 
+钉钉 markdown 的 `title` 主要用于通知和会话列表展示，不会自动作为群消息正文出现。`SendMarkdown` 会把 `title` 作为三级标题补到正文开头，并把 @ 信息补到正文末尾，方便在群内直接看到标题和 @
+
 ```go
 err := webhook.SendMarkdown(
 	context.Background(),
@@ -72,6 +74,8 @@ err := webhook.SendLink(
 
 ## ActionCard 消息
 
+独立跳转按钮需要同时设置 `Title` 和 `ActionURL`
+
 ```go
 err := webhook.SendActionCard(
 	context.Background(),
@@ -83,6 +87,7 @@ err := webhook.SendActionCard(
 	},
 	webhook.BtnHorizontal,
 	webhook.WithSecret("SECxxx"),
+	webhook.AtMobiles("13800138000"),
 )
 ```
 
@@ -119,7 +124,7 @@ err := webhook.SendText(
 
 ### @ 用户
 
-`text` 和 `markdown` 消息支持 @ 用户：
+`text`、`markdown` 和 `actionCard` 消息支持 @ 用户：
 
 ```go
 err := webhook.SendMarkdown(

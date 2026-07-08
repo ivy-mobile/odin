@@ -131,6 +131,8 @@ func TestSendMarkdownWithAtMobiles(t *testing.T) {
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&msg))
 		require.Equal(t, MsgTypeMarkdown, msg.MsgType)
 		require.NotNil(t, msg.Markdown)
+		require.Contains(t, msg.Markdown.Text, "### 告警通知")
+		require.Contains(t, msg.Markdown.Text, "@13800138000")
 		require.NotNil(t, msg.At)
 		require.Len(t, msg.At.AtMobiles, 1)
 		require.Equal(t, "13800138000", msg.At.AtMobiles[0])
@@ -170,23 +172,61 @@ func TestSendLink(t *testing.T) {
 }
 
 func TestSendActionMessages(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	var checks []func(*Message)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NotEmpty(t, checks)
+
+		var msg Message
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&msg))
+		check := checks[0]
+		checks = checks[1:]
+		check(&msg)
+
 		_, _ = w.Write([]byte(`{"errcode":0,"errmsg":"ok"}`))
 	}))
 	defer server.Close()
 
-	err := SendSingleActionCard(context.Background(), server.URL, "标题", "正文", "按钮", "https://example.com", BtnHorizontal)
+	checks = append(checks, func(msg *Message) {
+		require.Equal(t, MsgTypeActionCard, msg.MsgType)
+		require.NotNil(t, msg.ActionCard)
+		require.Contains(t, msg.ActionCard.Text, "@所有人")
+		require.NotNil(t, msg.At)
+		require.True(t, msg.At.IsAtAll)
+	})
+	err := SendSingleActionCard(context.Background(), server.URL, "标题", "正文", "按钮", "https://example.com", BtnHorizontal, AtAll())
 	require.NoError(t, err)
 
+	checks = append(checks, func(msg *Message) {
+		require.Equal(t, MsgTypeActionCard, msg.MsgType)
+		require.NotNil(t, msg.ActionCard)
+		require.Contains(t, msg.ActionCard.Text, "@13800138000")
+		require.NotNil(t, msg.At)
+		require.Len(t, msg.At.AtMobiles, 1)
+		require.Equal(t, "13800138000", msg.At.AtMobiles[0])
+	})
 	err = SendActionCard(context.Background(), server.URL, "标题", "正文", []ActionCardButton{
 		{Title: "按钮", ActionURL: "https://example.com"},
-	}, BtnVertical)
+	}, BtnVertical, AtMobiles("13800138000"))
 	require.NoError(t, err)
 
+	checks = append(checks, func(msg *Message) {
+		require.Equal(t, MsgTypeFeedCard, msg.MsgType)
+		require.NotNil(t, msg.FeedCard)
+		require.Nil(t, msg.At)
+	})
 	err = SendFeedCard(context.Background(), server.URL, []FeedCardLink{
 		{Title: "标题", MessageURL: "https://example.com", PicURL: "https://example.com/pic.png"},
 	})
 	require.NoError(t, err)
+	require.Empty(t, checks)
+}
+
+func TestSendActionCardMissingButtonActionURL(t *testing.T) {
+	err := SendActionCard(context.Background(), "https://example.com/robot/send", "标题", "正文", []ActionCardButton{
+		{Title: "按钮1"},
+		{Title: "按钮2"},
+	}, BtnHorizontal, AtMobiles("13721079906"))
+	require.ErrorIs(t, err, ErrActionCardButtonActionURLEmpty)
 }
 
 func TestSendInvalidWebhook(t *testing.T) {
@@ -234,4 +274,30 @@ func (errReadCloser) Read([]byte) (int, error) {
 
 func (errReadCloser) Close() error {
 	return nil
+}
+
+func TestSendAll(t *testing.T) {
+	//var (
+	//	ctx     = context.Background()
+	//	webhook = "https://oapi.dingtalk.com/robot/send?access_token=72cb68446f2a4b3c44e82b014f7450f1a0ec7a8fdb5c7f660d029df52a8e9d6a"
+	//	err     error
+	//)
+
+	//// 文本消息 AT all
+	//err = SendText(ctx, webhook, "lint 我是一条来自Go的一条测试消息，请忽略我!!", AtAll())
+	//require.NoError(t, err)
+
+	//// 文本消息 AT one
+	//err = SendText(ctx, webhook, "lint 我是一条来自Go的一条测试消息，请忽略我!! @one", AtMobiles("13721079906"))
+	//require.NoError(t, err)
+
+	// markdown消息 at one
+	// err = SendMarkdown(ctx, webhook, "我是标题", "lint 我是一条来自Go的一条测试消息，请忽略我!! ", AtMobiles("13721079906"))
+	// require.NoError(t, err)
+
+	// actionCard消息 at one
+	//err = SendActionCard(ctx, webhook, "我是标题", "lint 我是一条来自Go的一条测试消息，请忽略我!! ", []ActionCardButton{
+	//	{Title: "按钮1", ActionURL: "https://www.baidu.com"}, {Title: "按钮2", ActionURL: "https://www.baidu.com"},
+	//}, BtnHorizontal, AtMobiles("13721079906"))
+	//require.NoError(t, err)
 }
