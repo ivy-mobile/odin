@@ -14,6 +14,7 @@ require (
 	github.com/nacos-group/nacos-sdk-go/v2 v2.3.5
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/panjf2000/ants/v2 v2.11.3
+	github.com/redis/go-redis/v9 v9.21.0
 	github.com/rs/zerolog v1.34.0
 	github.com/sony/sonyflake/v2 v2.2.0
 	github.com/spf13/viper v1.20.1
@@ -138,7 +139,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
