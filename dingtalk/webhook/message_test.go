@@ -13,7 +13,9 @@ func TestNewMarkdownJSON(t *testing.T) {
 	data, err := json.Marshal(msg)
 	require.NoError(t, err)
 
-	want := `{"msgtype":"markdown","markdown":{"title":"告警","text":"### 告警\n\n### CPU 使用率过高\n\n@13800138000 @user1"},"at":{"atMobiles":["13800138000"],"atUserIds":["user1"],"isAtAll":false}}`
+	want := `{"msgtype":"markdown","markdown":{"title":"告警",` +
+		`"text":"### 告警\n\n### CPU 使用率过高\n\n@13800138000 @user1"},` +
+		`"at":{"atMobiles":["13800138000"],"atUserIds":["user1"],"isAtAll":false}}`
 	require.Equal(t, want, string(data))
 }
 
@@ -25,7 +27,10 @@ func TestNewActionCardWithAtJSON(t *testing.T) {
 	data, err := json.Marshal(msg)
 	require.NoError(t, err)
 
-	want := `{"msgtype":"actionCard","actionCard":{"title":"告警","text":"CPU 使用率过高\n\n@13800138000","btnOrientation":"1","btns":[{"title":"查看详情","actionURL":"https://example.com"}]},"at":{"atMobiles":["13800138000"],"isAtAll":false}}`
+	want := `{"msgtype":"actionCard","actionCard":{"title":"告警",` +
+		`"text":"CPU 使用率过高\n\n@13800138000","btnOrientation":"1",` +
+		`"btns":[{"title":"查看详情","actionURL":"https://example.com"}]},` +
+		`"at":{"atMobiles":["13800138000"],"isAtAll":false}}`
 	require.Equal(t, want, string(data))
 }
 
@@ -35,7 +40,10 @@ func TestNewSingleActionCardWithAtAllJSON(t *testing.T) {
 	data, err := json.Marshal(msg)
 	require.NoError(t, err)
 
-	want := `{"msgtype":"actionCard","actionCard":{"title":"告警","text":"CPU 使用率过高\n\n@所有人","btnOrientation":"0","singleTitle":"查看详情","singleURL":"https://example.com"},"at":{"isAtAll":true}}`
+	want := `{"msgtype":"actionCard","actionCard":{"title":"告警",` +
+		`"text":"CPU 使用率过高\n\n@所有人","btnOrientation":"0",` +
+		`"singleTitle":"查看详情","singleURL":"https://example.com"},` +
+		`"at":{"isAtAll":true}}`
 	require.Equal(t, want, string(data))
 }
 

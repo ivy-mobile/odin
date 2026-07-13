@@ -156,6 +156,7 @@ func TestSendWithNilContextAndTimeout(t *testing.T) {
 	}))
 	defer server.Close()
 
+	//nolint:staticcheck // Verify nil contexts are normalized before creating the request.
 	resp, err := Send(nil, server.URL, NewText("hello"), WithTimeout(time.Second))
 	require.NoError(t, err)
 	require.Equal(t, 0, resp.ErrCode)
@@ -276,7 +277,7 @@ func (errReadCloser) Close() error {
 	return nil
 }
 
-func TestSendAll(t *testing.T) {
+func TestSendAll(_ *testing.T) {
 	//var (
 	//	ctx     = context.Background()
 	//	webhook = "https://oapi.dingtalk.com/robot/send?access_token=72cb68446f2a4b3c44e82b014f7450f1a0ec7a8fdb5c7f660d029df52a8e9d6a"
