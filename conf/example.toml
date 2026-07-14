@@ -73,3 +73,8 @@ filters = "logging"
 
 [micros.room]
 filters = "logging"
+
+[dingtalk.notify_service_startup]
+enabled = ${DINGTALK_NOTIFY_SERVICE_STARTUP_ENABLED:-false}
+webhook = "${DINGTALK_NOTIFY_SERVICE_STARTUP_WEBHOOK:-}"
+secret = "${DINGTALK_NOTIFY_SERVICE_STARTUP_SECRET:-}"

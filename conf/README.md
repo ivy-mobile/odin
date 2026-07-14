@@ -195,6 +195,12 @@ micros:            # 微服务
     filters: logging
   room:
     filters: logging
+
+dingtalk:          # 钉钉
+  notify_service_startup: # 游戏服务启动成功通知
+    enabled: false
+    webhook: https://oapi.dingtalk.com/robot/send?access_token=xxx
+    secret: SECxxx
 ```
 
 ## Dubbo RPC 配置
@@ -298,6 +304,7 @@ conf.Log()          // 日志配置
 conf.Redis()        // Redis 配置
 conf.MQ()           // 消息队列配置
 conf.Micros()       // 微服务配置
+conf.DingTalk()     // 钉钉配置
 ```
 
 ## 完整示例

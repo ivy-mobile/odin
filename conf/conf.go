@@ -11,6 +11,7 @@ type Config struct {
 	Redis        RedisConfig       `yaml:"redis" json:"redis" toml:"redis"`                         // 游戏 redis
 	MQ           RocketMQConfig    `yaml:"mq" json:"mq" toml:"mq"`                                  // 消息队列
 	Micros       MicrosConfig      `yaml:"micros" json:"micros" toml:"micros"`                      // 微服务配置(调用其它服务)
+	DingTalk     DingTalkConfig    `yaml:"dingtalk" json:"dingtalk" toml:"dingtalk"`                // 钉钉
 }
 
 // Cfg 获取完整配置
@@ -51,4 +52,9 @@ func MQ() RocketMQConfig {
 // Micros 微服务配置(调用其它服务)
 func Micros() MicrosConfig {
 	return cfg.Micros
+}
+
+// DingTalk 钉钉配置
+func DingTalk() DingTalkConfig {
+	return cfg.DingTalk
 }

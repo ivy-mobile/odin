@@ -105,6 +105,90 @@ application:
 	assert.Equal(t, "sword-ball", Application().Name)
 }
 
+func TestLoadDingTalkNotifyServiceStartupConfig(t *testing.T) {
+	t.Setenv("TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_ENABLED", "true")
+	t.Setenv("TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_WEBHOOK", "https://oapi.dingtalk.com/robot/send?access_token=test")
+	t.Setenv("TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_SECRET", "SECtest")
+
+	tests := []struct {
+		name     string
+		filename string
+		content  string
+	}{
+		{
+			name:     "yaml",
+			filename: "Config.yaml",
+			content: `
+dingtalk:
+  notify_service_startup:
+    enabled: ${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_ENABLED}
+    webhook: "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_WEBHOOK}"
+    secret: "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_SECRET}"
+`,
+		},
+		{
+			name:     "json",
+			filename: "Config.json",
+			content: `{
+  "dingtalk": {
+    "notify_service_startup": {
+      "enabled": ${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_ENABLED},
+      "webhook": "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_WEBHOOK}",
+      "secret": "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_SECRET}"
+    }
+  }
+}`,
+		},
+		{
+			name:     "toml",
+			filename: "Config.toml",
+			content: `
+[dingtalk.notify_service_startup]
+enabled = ${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_ENABLED}
+webhook = "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_WEBHOOK}"
+secret = "${TEST_DINGTALK_NOTIFY_SERVICE_STARTUP_SECRET}"
+`,
+		},
+	}
+
+	want := DingTalkWebhookConfig{
+		Enabled: true,
+		Webhook: "https://oapi.dingtalk.com/robot/send?access_token=test",
+		Secret:  "SECtest",
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resetConfigForTest(t)
+			filename := writeFile(t, t.TempDir(), tt.filename, tt.content)
+
+			_, err := Load(filename)
+			assert.NoError(t, err)
+			assert.Equal(t, want, DingTalk().NotifyServiceStartup)
+		})
+	}
+}
+
+func TestLoadDingTalkConfigDefaults(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{name: "dingtalk omitted", content: "application:\n  id: 105\n"},
+		{name: "notify service startup empty", content: "dingtalk:\n  notify_service_startup: {}\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resetConfigForTest(t)
+			filename := writeFile(t, t.TempDir(), "Config.yaml", tt.content)
+
+			_, err := Load(filename)
+			assert.NoError(t, err)
+			assert.Equal(t, DingTalkConfig{}, DingTalk())
+		})
+	}
+}
+
 func TestLoadSystemConfigWithEnvSubst(t *testing.T) {
 	resetConfigForTest(t)
 	dir := t.TempDir()
