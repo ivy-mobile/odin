@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
@@ -93,11 +95,30 @@ func (m *mockNamingClient) ServerHealthy() bool {
 
 func (m *mockNamingClient) CloseClient() {}
 
+func assertRegisterTime(t *testing.T, value string, before, after time.Time) {
+	t.Helper()
+	if !strings.HasSuffix(value, "Z") {
+		t.Fatalf("register_time = %q, want UTC RFC3339 ending in Z", value)
+	}
+	parsed, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		t.Fatalf("parse register_time %q: %v", value, err)
+	}
+	_, offset := parsed.Zone()
+	if offset != 0 {
+		t.Fatalf("register_time offset = %d, want UTC", offset)
+	}
+	if parsed.Before(before) || parsed.After(after) {
+		t.Fatalf("register_time = %v, want between %v and %v", parsed, before, after)
+	}
+}
+
 func TestRegistry_RegisterBuildsNacosParams(t *testing.T) {
 	client := &mockNamingClient{}
 	r := New(client, Group("CUSTOM_GROUP"), Cluster("blue"), Weight(200))
-	metadata := map[string]string{"idc": "shanghai", "weight": "12.3"}
+	metadata := map[string]string{"idc": "shanghai", "weight": "12.3", fieldRegisterTime: "stale"}
 
+	before := time.Now().UTC().Add(-time.Second)
 	err := r.Register(context.Background(), &registry.ServiceInstance{
 		ID:        "node-1",
 		Name:      "game.grpc",
@@ -108,9 +129,12 @@ func TestRegistry_RegisterBuildsNacosParams(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Register error = %v", err)
 	}
+	after := time.Now().UTC().Add(time.Second)
 	if len(client.registerParams) != 2 {
 		t.Fatalf("RegisterInstance calls = %d, want 2", len(client.registerParams))
 	}
+	registerTime := client.registerParams[0].Metadata[fieldRegisterTime]
+	assertRegisterTime(t, registerTime, before, after)
 
 	wantFirst := vo.RegisterInstanceParam{
 		Ip:          "127.0.0.1",
@@ -123,20 +147,22 @@ func TestRegistry_RegisterBuildsNacosParams(t *testing.T) {
 		ClusterName: "blue",
 		GroupName:   "CUSTOM_GROUP",
 		Metadata: map[string]string{
-			"id":      "node-1",
-			"idc":     "shanghai",
-			"kind":    "grpc",
-			"version": "v1.0.0",
-			"weight":  "12.3",
+			"id":              "node-1",
+			"idc":             "shanghai",
+			"kind":            "grpc",
+			fieldRegisterTime: registerTime,
+			"version":         "v1.0.0",
+			"weight":          "12.3",
 		},
 	}
 	if !reflect.DeepEqual(client.registerParams[0], wantFirst) {
 		t.Fatalf("first RegisterInstance param = %#v, want %#v", client.registerParams[0], wantFirst)
 	}
-	if got := client.registerParams[1]; got.ServiceName != "game.grpc" || got.Metadata["kind"] != "http" {
+	if got := client.registerParams[1]; got.ServiceName != "game.grpc" ||
+		got.Metadata["kind"] != "http" || got.Metadata[fieldRegisterTime] != registerTime {
 		t.Fatalf("second RegisterInstance param = %#v", got)
 	}
-	if !reflect.DeepEqual(metadata, map[string]string{"idc": "shanghai", "weight": "12.3"}) {
+	if !reflect.DeepEqual(metadata, map[string]string{"idc": "shanghai", "weight": "12.3", fieldRegisterTime: "stale"}) {
 		t.Fatalf("Register mutated input metadata: %#v", metadata)
 	}
 }
@@ -145,6 +171,7 @@ func TestRegistry_RegisterUsesServiceNameAsNacosServiceName(t *testing.T) {
 	client := &mockNamingClient{}
 	r := New(client)
 
+	before := time.Now().UTC().Add(-time.Second)
 	err := r.Register(context.Background(), &registry.ServiceInstance{
 		Name:      "game",
 		Version:   "v1.0.0",
@@ -153,9 +180,11 @@ func TestRegistry_RegisterUsesServiceNameAsNacosServiceName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Register error = %v", err)
 	}
+	after := time.Now().UTC().Add(time.Second)
 	if got := client.registerParams[0].ServiceName; got != "game" {
 		t.Fatalf("ServiceName = %q, want %q", got, "game")
 	}
+	assertRegisterTime(t, client.registerParams[0].Metadata[fieldRegisterTime], before, after)
 }
 
 func TestRegistry_RegisterReturnsErrorWhenNacosReturnsFalse(t *testing.T) {

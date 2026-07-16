@@ -326,6 +326,7 @@ func TestRegistry_GetService(t *testing.T) {
 		Version:   "v1.0.0",
 		Endpoints: []string{"grpc://127.0.0.1:8080?isSecure=false"},
 	}
+	var registerBefore, registerAfter time.Time
 
 	type fields struct {
 		registry *Registry
@@ -346,7 +347,9 @@ func TestRegistry_GetService(t *testing.T) {
 		{
 			name: "normal",
 			preFunc: func(t *testing.T) {
+				registerBefore = time.Now().UTC().Add(-time.Second)
 				err = r.Register(context.Background(), testServer)
+				registerAfter = time.Now().UTC().Add(time.Second)
 				if err != nil {
 					t.Error(err)
 				}
@@ -402,6 +405,11 @@ func TestRegistry_GetService(t *testing.T) {
 				t.Errorf("GetService got = %v", got)
 				return
 			}
+			if len(got) > 0 && len(tt.want) > 0 {
+				registerTime := got[0].Metadata[fieldRegisterTime]
+				assertRegisterTime(t, registerTime, registerBefore, registerAfter)
+				tt.want[0].Metadata[fieldRegisterTime] = registerTime
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetService got = %v, want %v", got, tt.want)
 			}
@@ -439,6 +447,7 @@ func TestRegistry_Watch(t *testing.T) {
 		Version:   "v1.0.0",
 		Endpoints: []string{"grpc://127.0.0.1:8080?isSecure=false"},
 	}
+	var registerBefore, registerAfter time.Time
 
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	type fields struct {
@@ -474,7 +483,9 @@ func TestRegistry_Watch(t *testing.T) {
 				Endpoints: []string{"grpc://127.0.0.1:8080"},
 			}},
 			processFunc: func(t *testing.T) {
+				registerBefore = time.Now().UTC().Add(-time.Second)
 				err = r.Register(context.Background(), testServer)
+				registerAfter = time.Now().UTC().Add(time.Second)
 				if err != nil {
 					t.Error(err)
 				}
@@ -524,6 +535,11 @@ func TestRegistry_Watch(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Watch error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if len(want) > 0 && len(tt.want) > 0 {
+				registerTime := want[0].Metadata[fieldRegisterTime]
+				assertRegisterTime(t, registerTime, registerBefore, registerAfter)
+				tt.want[0].Metadata[fieldRegisterTime] = registerTime
 			}
 			if !reflect.DeepEqual(want, tt.want) {
 				if len(want) > 0 && len(tt.want) > 0 {

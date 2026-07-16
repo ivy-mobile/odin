@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
@@ -20,10 +21,11 @@ import (
 var ErrServiceInstanceNameEmpty = errors.New("meta/nacos: ServiceInstance.Name can not be empty")
 
 const (
-	fieldKind    = "kind"
-	fieldVersion = "version"
-	fieldID      = "id"
-	fieldWeight  = "weight"
+	fieldKind         = "kind"
+	fieldVersion      = "version"
+	fieldID           = "id"
+	fieldWeight       = "weight"
+	fieldRegisterTime = "register_time"
 )
 
 // Registry 是 nacos 注册中心实现
@@ -80,6 +82,7 @@ func (r *Registry) Register(_ context.Context, si *registry.ServiceInstance) err
 	if si.Name == "" {
 		return ErrServiceInstanceNameEmpty
 	}
+	registerTime := time.Now().UTC().Format(time.RFC3339)
 	for _, endpoint := range si.Endpoints {
 		u, err := url.Parse(endpoint)
 		if err != nil {
@@ -97,14 +100,16 @@ func (r *Registry) Register(_ context.Context, si *registry.ServiceInstance) err
 		var rmd map[string]string
 		if si.Metadata == nil {
 			rmd = map[string]string{
-				fieldKind:    u.Scheme,
-				fieldVersion: si.Version,
+				fieldKind:         u.Scheme,
+				fieldVersion:      si.Version,
+				fieldRegisterTime: registerTime,
 			}
 		} else {
 			rmd = maps.Clone(si.Metadata)
 			rmd[fieldKind] = u.Scheme
 			rmd[fieldVersion] = si.Version
 			rmd[fieldID] = si.ID
+			rmd[fieldRegisterTime] = registerTime
 			if w, ok := si.Metadata[fieldWeight]; ok {
 				weight, err = strconv.ParseFloat(w, 64)
 				if err != nil {
