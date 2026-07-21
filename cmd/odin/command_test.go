@@ -132,6 +132,24 @@ func TestNewCommandRequiresPositiveAppID(t *testing.T) {
 	}
 }
 
+func TestRootCommandVersion(t *testing.T) {
+	previousVersion := version
+	version = "v1.2.3"
+	t.Cleanup(func() { version = previousVersion })
+
+	for _, flag := range []string{"-v", "--version"} {
+		t.Run(flag, func(t *testing.T) {
+			command := newRootCommand(dependencies{})
+			output := &bytes.Buffer{}
+			command.SetOut(output)
+			command.SetArgs([]string{flag})
+
+			require.NoError(t, command.ExecuteContext(context.Background()))
+			assert.Equal(t, "odin version v1.2.3\n", output.String())
+		})
+	}
+}
+
 // recordingGenerator 记录 Cobra 参数解析与项目生成之间的调用，不接触 Git 和文件系统。
 type recordingGenerator struct {
 	options     *Options

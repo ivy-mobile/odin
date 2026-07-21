@@ -34,12 +34,15 @@ func newRootCommand(deps dependencies) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "odin",
 		Short:         "Odin development tools",
+		Version:       currentVersion(),
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd: true,
 		},
 	}
+	root.SetVersionTemplate("odin version {{.Version}}\n")
+	root.InitDefaultVersionFlag()
 	root.AddCommand(newProjectCommand(deps))
 	return root
 }
