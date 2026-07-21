@@ -89,6 +89,7 @@ func TestGeneratorReplacesContentAndPaths(t *testing.T) {
 	assert.Contains(t, providerTest, `"name: mono-pink-rpc",`)
 	assert.Contains(t, normalizedText(t, filepath.Join(destination, "api", "proto_upload.bat")), `proto/game-rpc/mono-pink`)
 	assert.Contains(t, normalizedText(t, filepath.Join(destination, "api", "proto_upload.sh")), `proto/game-rpc/mono-pink`)
+	assertProtoScriptsCustomized(t, destination)
 	assert.Equal(t, todoProtoFixture(), normalizedText(t, filepath.Join(destination, "api", "todo.proto")))
 	assert.Equal(t, todoGeneratedFixture(), normalizedText(t, filepath.Join(destination, "api", "todo.pb.go")))
 	assert.Equal(t, todoGeneratedFixture(), normalizedText(t, filepath.Join(destination, "api", "todo.triple.go")))
@@ -344,6 +345,10 @@ func newTemplateRepository(t *testing.T, module string) string {
 	writeFile(t, filepath.Join(repository, "api", "todo.proto"), todoProtoFixture(), 0o644)
 	writeFile(t, filepath.Join(repository, "api", "todo.pb.go"), todoGeneratedFixture(), 0o644)
 	writeFile(t, filepath.Join(repository, "api", "todo.triple.go"), todoGeneratedFixture(), 0o644)
+	writeFile(t, filepath.Join(repository, "internal", "pb", "proto_gengo.ps1"), protoGengoPowerShellFixture(), 0o644)
+	writeFile(t, filepath.Join(repository, "internal", "pb", "proto_gengo.sh"), protoGengoShellFixture(), 0o755)
+	writeFile(t, filepath.Join(repository, "internal", "pb", "proto_upload.ps1"), protoUploadPowerShellFixture(), 0o644)
+	writeFile(t, filepath.Join(repository, "internal", "pb", "proto_upload.sh"), protoUploadShellFixture(), 0o755)
 	writeFile(t, filepath.Join(repository, templateManifestName), testManifest(), 0o644)
 	writeFile(t, filepath.Join(repository, "asset.bin"), string(templateBinary()), 0o644)
 	if runtime.GOOS != "windows" {
@@ -415,7 +420,113 @@ text:
       - old: 'proto/game-rpc/game-skeleton'
         new: 'proto/game-rpc/{{ .Project }}'
         count: 1
+  - file: internal/pb/proto_gengo.ps1
+    replacements:
+      - old: '$TokaRepoRoot'
+        new: '$GameRepoRoot'
+        count: 2
+      - old: 'proto\game\toka'
+        new: 'proto/game/{{ .ProjectRoute }}'
+        count: 1
+      - old: '请确认它与 toka 位于同一级目录'
+        new: '请确认它与 {{ .Project }} 位于同一级目录'
+        count: 1
+  - file: internal/pb/proto_gengo.sh
+    replacements:
+      - old: 'TOKA_REPO_ROOT'
+        new: 'GAME_REPO_ROOT'
+        count: 2
+      - old: 'proto/game/toka'
+        new: 'proto/game/{{ .ProjectRoute }}'
+        count: 1
+      - old: '请确认它与 toka 位于同一级目录'
+        new: '请确认它与 {{ .Project }} 位于同一级目录'
+        count: 1
+  - file: internal/pb/proto_upload.ps1
+    replacements:
+      - old: '$TokaRepoRoot'
+        new: '$GameRepoRoot'
+        count: 2
+      - old: 'proto\game\toka'
+        new: 'proto/game/{{ .ProjectRoute }}'
+        count: 1
+      - old: '请确认它与 toka 位于同一级目录'
+        new: '请确认它与 {{ .Project }} 位于同一级目录'
+        count: 1
+      - old: '提交并推送 toka proto'
+        new: '提交并推送 {{ .Project }} proto'
+        count: 1
+      - old: 'proto/game/toka'
+        new: 'proto/game/{{ .ProjectRoute }}'
+        count: 2
+      - old: 'feat: update toka proto'
+        new: 'feat: update {{ .Project }} proto'
+        count: 1
+  - file: internal/pb/proto_upload.sh
+    replacements:
+      - old: 'TOKA_REPO_ROOT'
+        new: 'GAME_REPO_ROOT'
+        count: 2
+      - old: 'proto/game/toka'
+        new: 'proto/game/{{ .ProjectRoute }}'
+        count: 3
+      - old: '请确认它与 toka 位于同一级目录'
+        new: '请确认它与 {{ .Project }} 位于同一级目录'
+        count: 1
+      - old: '提交并推送 toka proto'
+        new: '提交并推送 {{ .Project }} proto'
+        count: 1
+      - old: 'feat: update toka proto'
+        new: 'feat: update {{ .Project }} proto'
+        count: 1
 `
+}
+
+func assertProtoScriptsCustomized(t *testing.T, destination string) {
+	t.Helper()
+	for _, name := range []string{"proto_gengo.ps1", "proto_upload.ps1"} {
+		content := normalizedText(t, filepath.Join(destination, "internal", "pb", name))
+		assert.Contains(t, content, "$GameRepoRoot")
+		assert.Contains(t, content, "proto/game/mono/pink")
+		assert.Contains(t, content, "与 mono-pink 位于同一级目录")
+		assert.NotContains(t, content, "TokaRepoRoot")
+	}
+	for _, name := range []string{"proto_gengo.sh", "proto_upload.sh"} {
+		content := normalizedText(t, filepath.Join(destination, "internal", "pb", name))
+		assert.Contains(t, content, "GAME_REPO_ROOT")
+		assert.Contains(t, content, "proto/game/mono/pink")
+		assert.Contains(t, content, "与 mono-pink 位于同一级目录")
+		assert.NotContains(t, content, "TOKA_REPO_ROOT")
+	}
+	for _, name := range []string{"proto_upload.ps1", "proto_upload.sh"} {
+		content := normalizedText(t, filepath.Join(destination, "internal", "pb", name))
+		assert.Contains(t, content, "提交并推送 mono-pink proto")
+		assert.Contains(t, content, "feat: update mono-pink proto")
+	}
+}
+
+func protoGengoPowerShellFixture() string {
+	return "$TokaRepoRoot = Resolve-Path .\n$WorkspaceRoot = Join-Path $TokaRepoRoot ..\n$ProtoDir = 'proto\\game\\toka'\n错误：请确认它与 toka 位于同一级目录。\n"
+}
+
+func protoGengoShellFixture() string {
+	return "TOKA_REPO_ROOT=.\nWORKSPACE_ROOT=\"$TOKA_REPO_ROOT/..\"\nPROTO_DIR=proto/game/toka\n错误：请确认它与 toka 位于同一级目录。\n"
+}
+
+func protoUploadPowerShellFixture() string {
+	return protoGengoPowerShellFixture() +
+		"请在仓库中提交并推送 toka proto。\n" +
+		"git status --short -- proto/game/toka\n" +
+		"git add proto/game/toka/*.proto\n" +
+		"feat: update toka proto\n"
+}
+
+func protoUploadShellFixture() string {
+	return protoGengoShellFixture() +
+		"请在仓库中提交并推送 toka proto。\n" +
+		"git status --short -- proto/game/toka\n" +
+		"git add proto/game/toka/*.proto\n" +
+		"feat: update toka proto\n"
 }
 
 func runGit(t *testing.T, directory string, args ...string) {
