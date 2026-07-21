@@ -206,7 +206,7 @@ func TestGeneratorRejectsInvalidAppIDBeforeClone(t *testing.T) {
 			ParentDir:  t.TempDir(),
 			AppID:      appID,
 		})
-		assert.ErrorContains(t, err, "invalid app-id")
+		assert.ErrorContains(t, err, "invalid id")
 		assert.NotContains(t, err.Error(), "git clone")
 	}
 }

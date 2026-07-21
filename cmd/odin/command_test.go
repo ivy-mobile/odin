@@ -20,19 +20,19 @@ func TestNewCommandRepositoryPrecedence(t *testing.T) {
 	}{
 		{
 			name:        "flag overrides environment",
-			args:        []string{"new", "uno", "--app-id", "107", "--repo", "flag-repo"},
+			args:        []string{"new", "uno", "--id", "107", "--repo", "flag-repo"},
 			environment: "env-repo",
 			want:        "flag-repo",
 		},
 		{
 			name:        "environment overrides default",
-			args:        []string{"new", "uno", "--app-id", "107"},
+			args:        []string{"new", "uno", "--id", "107"},
 			environment: "env-repo",
 			want:        "env-repo",
 		},
 		{
 			name: "default repository",
-			args: []string{"new", "uno", "--app-id", "107"},
+			args: []string{"new", "uno", "--id", "107"},
 			want: DefaultRepository,
 		},
 	}
@@ -69,7 +69,7 @@ func TestNewCommandBranchAndShortFlags(t *testing.T) {
 	})
 	output := &bytes.Buffer{}
 	command.SetOut(output)
-	command.SetArgs([]string{"new", "ab-cd", "--app-id", "108", "-r", "custom-repo", "-b", "feature"})
+	command.SetArgs([]string{"new", "ab-cd", "--id", "108", "-r", "custom-repo", "-b", "feature"})
 
 	require.NoError(t, command.ExecuteContext(context.Background()))
 	require.NotNil(t, generator.options)
@@ -82,7 +82,7 @@ func TestNewCommandBranchAndShortFlags(t *testing.T) {
 func TestNewCommandArgumentCount(t *testing.T) {
 	tests := [][]string{
 		{"new"},
-		{"new", "uno", "extra", "--app-id", "107"},
+		{"new", "uno", "extra", "--id", "107"},
 	}
 	for _, args := range tests {
 		command := newRootCommand(dependencies{
@@ -102,7 +102,7 @@ func TestNewCommandPropagatesDependencyErrors(t *testing.T) {
 		getenv:    func(string) string { return "" },
 		getwd:     func() (string, error) { return "work", nil },
 	})
-	command.SetArgs([]string{"new", "uno", "--app-id", "107"})
+	command.SetArgs([]string{"new", "uno", "--id", "107"})
 	assert.ErrorIs(t, command.ExecuteContext(context.Background()), wantErr)
 }
 
@@ -112,9 +112,10 @@ func TestNewCommandRequiresPositiveAppID(t *testing.T) {
 		args []string
 	}{
 		{name: "missing", args: []string{"new", "uno"}},
-		{name: "zero", args: []string{"new", "uno", "--app-id", "0"}},
-		{name: "negative", args: []string{"new", "uno", "--app-id", "-1"}},
-		{name: "not integer", args: []string{"new", "uno", "--app-id", "abc"}},
+		{name: "zero", args: []string{"new", "uno", "--id", "0"}},
+		{name: "negative", args: []string{"new", "uno", "--id", "-1"}},
+		{name: "not integer", args: []string{"new", "uno", "--id", "abc"}},
+		{name: "legacy app-id", args: []string{"new", "uno", "--app-id", "107"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

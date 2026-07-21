@@ -55,7 +55,7 @@ func newProjectCommand(deps dependencies) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if appID <= 0 {
-				return fmt.Errorf("invalid app-id %d: must be a positive integer", appID)
+				return fmt.Errorf("invalid id %d: must be a positive integer", appID)
 			}
 			workingDirectory, err := deps.getwd()
 			if err != nil {
@@ -88,7 +88,7 @@ func newProjectCommand(deps dependencies) *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Git template repository")
 	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Git template branch")
-	cmd.Flags().IntVar(&appID, "app-id", 0, "Positive application ID")
-	_ = cmd.MarkFlagRequired("app-id")
+	cmd.Flags().IntVar(&appID, "id", 0, "Positive application ID")
+	_ = cmd.MarkFlagRequired("id")
 	return cmd
 }

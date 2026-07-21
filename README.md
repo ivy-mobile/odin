@@ -48,8 +48,8 @@ go install github.com/ivy-mobile/odin/cmd/odin@latest
 使用默认的 `game-skeleton` 模板创建项目：
 
 ```bash
-odin new uno --app-id 107
-odin new ab-cd --app-id 108
+odin new uno --id 107
+odin new ab-cd --id 108
 ```
 
 项目名只能包含小写英文字母，多个单词使用单个短横线分隔。项目会创建在当前目录下，短横线形式用于目录名和 Go module，下划线形式用于 Go 标识符。
@@ -57,17 +57,17 @@ odin new ab-cd --app-id 108
 可以通过参数指定其他 Git 模板仓库和分支：
 
 ```bash
-odin new uno --app-id 107 -r https://example.com/team/game-layout.git
-odin new uno --app-id 107 -r git@example.com:team/game-layout.git -b develop
+odin new uno --id 107 -r https://example.com/team/game-layout.git
+odin new uno --id 107 -r git@example.com:team/game-layout.git -b develop
 ```
 
 也可以通过环境变量设置模板仓库：
 
 ```bash
-ODIN_LAYOUT_REPO=https://example.com/team/game-layout.git odin new uno --app-id 107
+ODIN_LAYOUT_REPO=https://example.com/team/game-layout.git odin new uno --id 107
 ```
 
-模板仓库的选择优先级为 `--repo`、`ODIN_LAYOUT_REPO`、默认模板仓库。未指定 `--branch` 时使用远端默认分支。`--app-id` 必填且必须为正整数；WebSocket 路径按项目名推导，例如 `mono-pink` 对应 `/party-pop/game/mono/pink`。运行环境需要安装 Git，并提前配置好私有仓库所需的 SSH 或 HTTPS 凭据。
+模板仓库的选择优先级为 `--repo`、`ODIN_LAYOUT_REPO`、默认模板仓库。未指定 `--branch` 时使用远端默认分支。`--id` 必填且必须为正整数；WebSocket 路径按项目名推导，例如 `mono-pink` 对应 `/party-pop/game/mono/pink`。运行环境需要安装 Git，并提前配置好私有仓库所需的 SSH 或 HTTPS 凭据。
 
 所有模板仓库都必须在根目录提供 `.odin-template.yaml`。首版清单版本为 `1`，支持按点路径修改 YAML 标量字段，以及对指定 UTF-8 文件执行带匹配数量校验的精确文本替换。生成结果不会包含该清单。
 
@@ -75,7 +75,7 @@ ODIN_LAYOUT_REPO=https://example.com/team/game-layout.git odin new uno --app-id 
 
 - `{{ .Project }}`：命令行传入的项目名，例如 `mono-pink`。
 - `{{ .ProjectRoute }}`：将项目名中的短横线替换为 `/`，例如 `mono/pink`。
-- `{{ .AppID }}`：`--app-id` 的正整数值。
+- `{{ .AppID }}`：`--id` 的正整数值。
 
 清单结构示例：
 

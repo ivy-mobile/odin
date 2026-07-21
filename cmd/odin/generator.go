@@ -48,7 +48,7 @@ func (g *Generator) Generate(ctx context.Context, options Options) (string, erro
 		return "", validationErr
 	}
 	if options.AppID <= 0 {
-		return "", fmt.Errorf("invalid app-id %d: must be a positive integer", options.AppID)
+		return "", fmt.Errorf("invalid id %d: must be a positive integer", options.AppID)
 	}
 	if strings.TrimSpace(options.Repository) == "" {
 		return "", errors.New("template repository is required")
