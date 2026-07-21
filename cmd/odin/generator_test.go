@@ -61,9 +61,9 @@ func TestGeneratorReplacesContentAndPaths(t *testing.T) {
 	assert.NotContains(t, goMod, "github.com/example/game-skeleton")
 
 	readme := readFile(t, filepath.Join(destination, "README.md"))
-	assert.Contains(t, readme, "mono-pink mono_pink")
-	assert.NotContains(t, readme, "game-skeleton")
-	assert.NotContains(t, readme, "game_skeleton")
+	assert.Equal(t, "# mono-pink\n\nApp 108 route /party-pop/game/mono/pink\n", normalizedText(t, filepath.Join(destination, "README.md")))
+	assert.NotContains(t, readme, "template repository documentation")
+	assert.NoFileExists(t, filepath.Join(destination, ".odin-project-readme.md"))
 
 	renamed := filepath.Join(destination, "config", "mono-pink", "mono_pink.txt")
 	assert.FileExists(t, renamed)
@@ -220,6 +220,9 @@ func TestGeneratorRejectsInvalidManifest(t *testing.T) {
 		{name: "missing", wantError: "is required", removeFile: true},
 		{name: "unsupported version", manifest: "version: 2\n", wantError: "unsupported template manifest version"},
 		{name: "unknown field", manifest: "version: 1\nunknown: true\n", wantError: "field unknown not found"},
+		{name: "project readme missing", manifest: "version: 1\nproject_readme: missing.md\n", wantError: "project readme source"},
+		{name: "project readme binary", manifest: "version: 1\nproject_readme: asset.bin\n", wantError: "not valid UTF-8 text"},
+		{name: "project readme protected Todo API", manifest: "version: 1\nproject_readme: api/todo.proto\n", wantError: "is protected and cannot be used"},
 		{
 			name:      "yaml field missing",
 			manifest:  "version: 1\nyaml:\n  - file: config/application.yaml\n    set:\n      - path: application.missing\n        value: value\n",
@@ -330,7 +333,8 @@ func newTemplateRepository(t *testing.T, module string) string {
 	runGit(t, repository, "config", "user.email", "odin-test@example.com")
 	runGit(t, repository, "config", "user.name", "Odin Test")
 	writeFile(t, filepath.Join(repository, "go.mod"), fmt.Sprintf("module %s\n\ngo 1.24.0\n", module), 0o644)
-	writeFile(t, filepath.Join(repository, "README.md"), module+" game-skeleton game_skeleton\n", 0o644)
+	writeFile(t, filepath.Join(repository, "README.md"), "template repository documentation: "+module+"\n", 0o644)
+	writeFile(t, filepath.Join(repository, ".odin-project-readme.md"), projectReadmeFixture(), 0o644)
 	writeFile(t, filepath.Join(repository, "config", "game-skeleton", "game_skeleton.txt"), "game-skeleton/game_skeleton\n", 0o644)
 	writeFile(t, filepath.Join(repository, "config", "application.yaml"), testApplicationYAML(), 0o644)
 	writeFile(t, filepath.Join(repository, "config", "dubbo.yaml"), "dubbo:\n  application:\n    name: todo-rpc\n", 0o644)
@@ -370,6 +374,7 @@ mq:
 
 func testManifest() string {
 	return `version: 1
+project_readme: .odin-project-readme.md
 yaml:
   - file: config/application.yaml
     set:
@@ -446,6 +451,10 @@ func readBytes(t *testing.T, name string) []byte {
 
 func templateBinary() []byte {
 	return bytes.Join([][]byte{{0xff, 0xfe, 0x00}, []byte("game-skeleton")}, nil)
+}
+
+func projectReadmeFixture() string {
+	return "# {{ .Project }}\n\nApp {{ .AppID }} route /party-pop/game/{{ .ProjectRoute }}\n"
 }
 
 func todoProtoFixture() string {

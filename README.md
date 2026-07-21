@@ -81,6 +81,7 @@ ODIN_LAYOUT_REPO=https://example.com/team/game-layout.git odin new uno --app-id 
 
 ```yaml
 version: 1
+project_readme: .odin-project-readme.md
 
 yaml:
   - file: config/application.yaml
@@ -100,6 +101,8 @@ text:
 ```
 
 `yaml[].set[].path` 使用点分隔的 mapping key，只能修改已经存在的标量；`type` 支持 `string`（默认）和 `int`。`text` 规则只接受模板根目录内的普通 UTF-8 文件，每条规则的实际匹配数必须与正整数 `count` 完全一致。绝对路径、`..`、`.git`、符号链接和二进制文件都会被拒绝；重复 YAML key、字段不存在或类型不匹配也会使生成失败。清单不能修改 `api/todo.proto`、`api/todo.pb.go` 和 `api/todo.triple.go`。
+
+如果模板仓库需要为生成项目提供精简 README，可以设置 `project_readme`，例如 `.odin-project-readme.md`。该文件支持同样的三个内置变量，渲染后写入生成项目根目录的 `README.md`；源文件和模板仓库原有的 `README.md` 都不会进入生成结果。
 
 CLI 生成项目文件后不会自动执行 `go mod tidy` 或 `git init`。
 

@@ -20,9 +20,10 @@ const templateManifestName = ".odin-template.yaml"
 
 // templateManifest 是 odin 与模板仓库共同遵循的严格版本化定制协议。
 type templateManifest struct {
-	Version int            `yaml:"version"`
-	YAML    []yamlFileEdit `yaml:"yaml"`
-	Text    []textFileEdit `yaml:"text"`
+	Version       int            `yaml:"version"`
+	ProjectReadme string         `yaml:"project_readme"`
+	YAML          []yamlFileEdit `yaml:"yaml"`
+	Text          []textFileEdit `yaml:"text"`
 }
 
 type yamlFileEdit struct {
@@ -85,11 +86,70 @@ func applyManifest(templateDir string, options Options) error {
 		Project:      options.Name,
 		ProjectRoute: strings.ReplaceAll(options.Name, "-", "/"),
 	}
+	if err := applyProjectReadme(templateDir, manifest.ProjectReadme, values); err != nil {
+		return err
+	}
 	if err := applyYAMLEdits(templateDir, manifest.YAML, values); err != nil {
 		return err
 	}
 	if err := applyTextEdits(templateDir, manifest.Text, values); err != nil {
 		return err
+	}
+	return nil
+}
+
+// applyProjectReadme 用清单声明的简短文档替换模板仓库 README，并移除源文件。
+func applyProjectReadme(root, source string, values templateValues) error {
+	if strings.TrimSpace(source) == "" {
+		return nil
+	}
+	if isTodoAPIPath(source) {
+		return fmt.Errorf("project readme source %q is protected and cannot be used", source)
+	}
+	sourcePath, err := manifestPath(root, source)
+	if err != nil {
+		return fmt.Errorf("project readme source: %w", err)
+	}
+	data, mode, err := readManifestFile(sourcePath)
+	if err != nil {
+		return fmt.Errorf("read project readme %q: %w", source, err)
+	}
+	if !utf8.Valid(data) || strings.IndexByte(string(data), 0) >= 0 {
+		return fmt.Errorf("project readme %q is not valid UTF-8 text", source)
+	}
+	rendered, err := renderTemplate(string(data), values)
+	if err != nil {
+		return fmt.Errorf("render project readme %q: %w", source, err)
+	}
+	targetPath, err := filepath.Abs(filepath.Join(root, "README.md"))
+	if err != nil {
+		return fmt.Errorf("resolve project readme target: %w", err)
+	}
+	sourceInfo, err := os.Stat(sourcePath)
+	if err != nil {
+		return fmt.Errorf("inspect project readme source %q: %w", source, err)
+	}
+	targetInfo, targetErr := os.Lstat(targetPath)
+	sameFile := false
+	switch {
+	case targetErr == nil:
+		if targetInfo.Mode()&os.ModeSymlink != 0 || !targetInfo.Mode().IsRegular() {
+			return errors.New("project readme target must be a regular non-symlink file")
+		}
+		sameFile = os.SameFile(sourceInfo, targetInfo)
+	case !errors.Is(targetErr, fs.ErrNotExist):
+		return fmt.Errorf("inspect project readme target: %w", targetErr)
+	}
+	if err := os.WriteFile(targetPath, []byte(rendered), chmodMode(mode)); err != nil {
+		return fmt.Errorf("write project README.md: %w", err)
+	}
+	if err := os.Chmod(targetPath, chmodMode(mode)); err != nil {
+		return fmt.Errorf("preserve project README.md mode: %w", err)
+	}
+	if !sameFile {
+		if err := os.Remove(sourcePath); err != nil {
+			return fmt.Errorf("remove project readme source %q: %w", source, err)
+		}
 	}
 	return nil
 }
