@@ -27,7 +27,7 @@ type Member struct {
 	Uid           int64                  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`                                                                            // 玩家ID
 	Nickname      string                 `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`                                                                   // 昵称
 	Avatar        string                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`                                                                       // 头像
-	Gender        int32                  `protobuf:"varint,4,opt,name=gender,proto3" json:"gender,omitempty"`                                                                      // 性别
+	Gender        string                 `protobuf:"bytes,4,opt,name=gender,proto3" json:"gender,omitempty"`                                                                       // 性别
 	SeatId        int32                  `protobuf:"varint,5,opt,name=seat_id,json=seatId,proto3" json:"seat_id,omitempty"`                                                        // 座位ID
 	IsReady       bool                   `protobuf:"varint,6,opt,name=is_ready,json=isReady,proto3" json:"is_ready,omitempty"`                                                     // 已准备?
 	Meta          map[string]*Value      `protobuf:"bytes,7,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // 扩展字段
@@ -86,11 +86,11 @@ func (x *Member) GetAvatar() string {
 	return ""
 }
 
-func (x *Member) GetGender() int32 {
+func (x *Member) GetGender() string {
 	if x != nil {
 		return x.Gender
 	}
-	return 0
+	return ""
 }
 
 func (x *Member) GetSeatId() int32 {
@@ -123,7 +123,7 @@ const file_member_proto_rawDesc = "" +
 	"\x03uid\x18\x01 \x01(\x03R\x03uid\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x16\n" +
 	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x16\n" +
-	"\x06gender\x18\x04 \x01(\x05R\x06gender\x12\x17\n" +
+	"\x06gender\x18\x04 \x01(\tR\x06gender\x12\x17\n" +
 	"\aseat_id\x18\x05 \x01(\x05R\x06seatId\x12\x19\n" +
 	"\bis_ready\x18\x06 \x01(\bR\aisReady\x12.\n" +
 	"\x04meta\x18\a \x03(\v2\x1a.envelope.Member.MetaEntryR\x04meta\x1aH\n" +

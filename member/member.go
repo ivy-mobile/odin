@@ -12,7 +12,7 @@ type Member struct {
 	IsRobot        bool      // 是否机器人
 	Nickname       string    // 昵称
 	Avatar         string    // 头像
-	Gender         int       // 性别
+	Gender         string    // 性别
 	IsReady        bool      // 是否已准备
 	LastActiveTime time.Time // 最近活跃时间
 	Offline        bool      // 是否离线
@@ -29,7 +29,7 @@ func (m *Member) Snapshot() *envelope.Member {
 		Uid:      m.ID,
 		Nickname: m.Nickname,
 		Avatar:   m.Avatar,
-		Gender:   int32(m.Gender),
+		Gender:   m.Gender,
 		SeatId:   int32(m.SeatID),
 		IsReady:  m.IsReady,
 		Meta:     meta,
