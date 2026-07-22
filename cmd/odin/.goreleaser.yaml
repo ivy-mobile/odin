@@ -1,0 +1,46 @@
+version: 2
+
+project_name: odin
+
+builds:
+  - id: odin
+    dir: ./cmd/odin
+    main: .
+    binary: odin
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version=v{{ .Env.RELEASE_VERSION }}
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: odin
+    ids:
+      - odin
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: odin_{{ .Env.RELEASE_VERSION }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - src: cmd/odin/README.md
+        dst: README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true
+
+release:
+  disable: true

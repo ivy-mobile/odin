@@ -114,11 +114,56 @@ golangci-lint run ./...
 
 ## 发布
 
-独立 module 使用 `cmd/odin/vX.Y.Z` 形式的标签：
+CLI 使用 GoReleaser Community 交叉编译以下平台：
+
+- Windows `amd64`、`arm64`
+- Linux `amd64`、`arm64`
+- macOS `amd64`、`arm64`
+
+Linux 和 macOS 产物为 `tar.gz`，Windows 产物为 `zip`。每次发布还会生成 `checksums.txt`。
+
+### 本地快照
+
+安装与 CI 相同版本的 GoReleaser：
+
+```bash
+go install github.com/goreleaser/goreleaser/v2@v2.17.0
+```
+
+在仓库根目录执行配置检查和快照构建：
+
+```powershell
+$env:RELEASE_VERSION = "0.1.0-snapshot"
+goreleaser check --config cmd/odin/.goreleaser.yaml
+goreleaser release --snapshot --clean --config cmd/odin/.goreleaser.yaml
+```
+
+产物生成在仓库根目录的 `dist/`。解压当前平台的压缩包后执行：
+
+```powershell
+./odin -v
+```
+
+预期输出 `odin version v0.1.0-snapshot`。校验下载文件：
+
+```bash
+cd dist
+sha256sum -c checksums.txt
+```
+
+### 正式发布
+
+独立 module 使用稳定 SemVer 格式的 `cmd/odin/vX.Y.Z` 标签：
 
 ```bash
 git tag cmd/odin/v0.1.0
 git push origin cmd/odin/v0.1.0
 ```
 
-标签推送后，可通过 `go install github.com/ivy-mobile/odin/cmd/odin@latest` 安装该版本。
+GitHub Actions 只监听 `cmd/odin/v*`，根库的 `v*` 标签不会触发 CLI 发布。工作流会执行测试和静态检查，生成 6 个压缩包与 `checksums.txt`，然后将它们上传到对应标签的 GitHub Release。
+
+标签推送后，可通过以下命令安装：
+
+```bash
+go install github.com/ivy-mobile/odin/cmd/odin@latest
+```

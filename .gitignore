@@ -44,3 +44,4 @@ ${GOPATH}/pkg/sumdb/
 tmp/
 temp/
 .cache
+/dist/
