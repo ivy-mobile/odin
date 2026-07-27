@@ -31,6 +31,8 @@ func defaultDependencies() dependencies {
 }
 
 func newRootCommand(deps dependencies) *cobra.Command {
+	var repository string
+
 	root := &cobra.Command{
 		Use:           "odin",
 		Short:         "Odin development tools",
@@ -41,14 +43,16 @@ func newRootCommand(deps dependencies) *cobra.Command {
 			DisableDefaultCmd: true,
 		},
 	}
+	root.InitDefaultHelpFlag()
 	root.SetVersionTemplate("odin version {{.Version}}\n")
 	root.InitDefaultVersionFlag()
-	root.AddCommand(newProjectCommand(deps))
+	repositoryUsage := "Git template repository (default: " + DefaultRepository + "; env: " + layoutRepositoryEnv + ")"
+	root.PersistentFlags().StringVarP(&repository, "repo", "r", "", repositoryUsage)
+	root.AddCommand(newProjectCommand(deps, &repository))
 	return root
 }
 
-func newProjectCommand(deps dependencies) *cobra.Command {
-	var repository string
+func newProjectCommand(deps dependencies, repository *string) *cobra.Command {
 	var branch string
 	var appID int
 
@@ -66,7 +70,7 @@ func newProjectCommand(deps dependencies) *cobra.Command {
 			}
 
 			// 显式参数的优先级高于环境变量，环境变量的优先级高于内置仓库。
-			resolvedRepository := strings.TrimSpace(repository)
+			resolvedRepository := strings.TrimSpace(*repository)
 			if resolvedRepository == "" {
 				resolvedRepository = strings.TrimSpace(deps.getenv(layoutRepositoryEnv))
 			}
@@ -89,7 +93,6 @@ func newProjectCommand(deps dependencies) *cobra.Command {
 			return err
 		},
 	}
-	cmd.Flags().StringVarP(&repository, "repo", "r", "", "Git template repository")
 	cmd.Flags().StringVarP(&branch, "branch", "b", "", "Git template branch")
 	cmd.Flags().IntVar(&appID, "id", 0, "Positive application ID")
 	_ = cmd.MarkFlagRequired("id")

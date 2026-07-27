@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -146,6 +147,24 @@ func TestRootCommandVersion(t *testing.T) {
 
 			require.NoError(t, command.ExecuteContext(context.Background()))
 			assert.Equal(t, "odin version v1.2.3\n", output.String())
+		})
+	}
+}
+
+func TestRootCommandHelp(t *testing.T) {
+	for _, args := range [][]string{{"-h"}, {"--help"}, {"new", "-h"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			command := newRootCommand(dependencies{})
+			output := &bytes.Buffer{}
+			command.SetOut(output)
+			command.SetArgs(args)
+
+			require.NoError(t, command.ExecuteContext(context.Background()))
+			assert.Contains(t, output.String(), "Usage:")
+			assert.Contains(t, output.String(), "--help")
+			assert.Contains(t, output.String(), "-r, --repo")
+			assert.Contains(t, output.String(), DefaultRepository)
+			assert.Contains(t, output.String(), layoutRepositoryEnv)
 		})
 	}
 }

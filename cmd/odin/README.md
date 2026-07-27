@@ -24,6 +24,17 @@ odin --version
 
 通过版本标签执行 `go install` 时，Odin 会读取构建信息中的 module 版本；本地开发构建显示 `dev`。
 
+查看命令帮助：
+
+```bash
+odin -h
+# 或
+odin --help
+
+# 查看 new 子命令帮助
+odin new -h
+```
+
 ## 创建项目
 
 ```text
