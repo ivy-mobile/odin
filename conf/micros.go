@@ -8,6 +8,8 @@ type MicrosConfig struct {
 	User *MicroConfig `yaml:"user" json:"user" toml:"user"`
 	// 房间服务 - Java端
 	Room *MicroConfig `yaml:"room" json:"room" toml:"room"`
+	// 应用服务 - Java端
+	App *MicroConfig `yaml:"app" json:"app" toml:"app"`
 	// ...
 }
 
